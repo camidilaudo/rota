@@ -1,0 +1,12 @@
+# Archivos de entorno y variables sensibles
+.env
+
+# Directorios de compilación e IDEs
+/backend/target/
+.idea/
+*.iml
+.vscode/
+.DS_Store
+
+# Logs
+*.log
