@@ -20,24 +20,26 @@ public class Categoria {
     private Long id;
 
     @NotBlank(message = "El nombre de la categoría es obligatorio")
-    @Column(nullable = false, unique = true, length = 80)
+    @Column(nullable = false, length = 100)
     private String nombre;
 
-    @NotNull(message = "El umbral de días críticos es obligatorio")
-    @Min(value = 1, message = "El umbral de días críticos debe ser al menos 1 día")
-    @Column(name = "dias_umbral_critico", nullable = false)
+    @NotNull(message = "El umbral de días de alerta es obligatorio")
+    @Min(value = 1, message = "El umbral de alerta debe ser de al menos 1 día")
+    @Column(name = "dias_umbral_alerta", nullable = false)
+    private Integer diasUmbralAlerta;
+
+    @Column(name = "dias_umbral_critico")
     private Integer diasUmbralCritico;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "modo_notificacion", nullable = false)
-    @Builder.Default
-    private ModoNotificacion modoNotificacion = ModoNotificacion.PANTALLA;
+    @Column(name = "modo_notificacion", nullable = false, length = 30)
+    private ModoNotificacion modoNotificacion;
 
+    @Column(name = "es_piloto")
     @Builder.Default
-    @Column(name = "es_piloto", nullable = false)
     private Boolean esPiloto = false;
 
-    @Builder.Default
     @Column(nullable = false)
+    @Builder.Default
     private Boolean activa = true;
 }

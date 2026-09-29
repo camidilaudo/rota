@@ -2,9 +2,9 @@ package com.rota.config;
 
 import com.rota.repository.UsuarioRepository;
 import com.rota.security.JwtAuthenticationFilter;
-import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -23,11 +23,16 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 @EnableWebSecurity
-@RequiredArgsConstructor
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final UsuarioRepository usuarioRepository;
+
+    // Se utiliza @Lazy en el filtro para romper la referencia circular con el UserDetailsService definido en esta misma clase
+    public SecurityConfig(@Lazy JwtAuthenticationFilter jwtAuthFilter, UsuarioRepository usuarioRepository) {
+        this.jwtAuthFilter = jwtAuthFilter;
+        this.usuarioRepository = usuarioRepository;
+    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
