@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Entity
@@ -41,6 +42,10 @@ public class Lote {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 30)
     private Ubicacion ubicacion;
+
+    @Column(name = "porcentaje_descuento", precision = 5, scale = 2)
+    @Builder.Default
+    private BigDecimal porcentajeDescuento = BigDecimal.ZERO;
 
     @PrePersist
     public void prePersist() {
