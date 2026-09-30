@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Silenciar frameworks y motores técnicos -->
+    <logger name="org.springframework" level="OFF"/>
+    <logger name="org.hibernate" level="OFF"/>
+    <logger name="com.zaxxer.hikari" level="OFF"/>
+    <logger name="org.apache" level="OFF"/>
+    <logger name="com.rota" level="INFO"/>
+    
+    <root level="OFF">
+        <appender-ref ref="STDOUT"/>
+    </root>
+</configuration>
