@@ -151,7 +151,7 @@ Cada lote permite realizar seguimiento de:
 - Estado.
 - Producto asociado.
 
-Esto permite trabajar con una lógica basada en lotes y no únicamente en el stock total del producto.
+Esto permite trabajar con una lógica basada en lotes y notificaciones orientadas al criterio **FEFO (First Expired, First Out)**.
 
 ### 📍 Gestión de ubicaciones
 
@@ -239,8 +239,8 @@ Rota utiliza una arquitectura basada en capas.
              │
              ▼
 ┌─────────────────────────┐
-│        Service          │
-│     Lógica de negocio   │
+│         Service         │
+│    Lógica de negocio    │
 └────────────┬────────────┘
              │
              ▼
@@ -589,6 +589,8 @@ Al iniciar la aplicación con una base de datos vacía, `DataInitializer` puede 
 | --- | --- | --- |
 | `POST` | `/api/lotes` | Registrar un nuevo lote. |
 | `PATCH` | `/api/lotes/{id}/descuento` | Aplicar un descuento a un lote. |
+| `GET` | `/api/lotes/buscar?filtro=...` | Buscar lotes activos por nombre de producto o código de barras. |
+| `GET` | `/api/lotes/fefo/producto/{id}` | Obtener lotes activos de un producto ordenados por FEFO. |
 
 ### 📋 Ruta diaria
 
@@ -672,34 +674,34 @@ Esto permite comenzar a probar el sistema sin necesidad de cargar todos los dato
 └────────────┬─────────────┘
              │
              ▼
-       ┌─────┴─────┐
-       │           │
-       ▼           ▼
-   🟢 OK      🟡 / 🔴 Riesgo
+        ┌─────┴─────┐
+        │           │
+        ▼           ▼
+      🟢 OK    🟡 / 🔴 Riesgo
+                    │
+                    ▼
+           ┌────────────────┐
+           │ Ruta diaria    │
+           │ / Acción       │
+           │ comercial      │
+           └───────┬────────┘
                    │
                    ▼
-          ┌────────────────┐
-          │ Ruta diaria    │
-          │ / Acción       │
-          │ comercial      │
-          └───────┬────────┘
-                  │
-                  ▼
-          ┌──────────────────┐
-          │ ¿Se comercializa?│
-          └───────┬──────────┘
-                  │
-             ┌────┴────┐
-             │         │
-             ▼         ▼
-            Sí         No
-             │         │
-             ▼         ▼
-       Venta /      Registrar
-       descuento      merma
-                         │
-                         ▼
-                  Pérdida económica
+           ┌──────────────────┐
+           │ ¿Se comercializa?│
+           └───────┬──────────┘
+                   │
+              ┌────┴────┐
+              │         │
+              ▼         ▼
+             Sí         No
+              │         │
+              ▼         ▼
+         Venta /    Registrar
+         descuento    merma
+                        │
+                        ▼
+                 Pérdida económica
 ```
 
 ---
@@ -815,6 +817,8 @@ El desarrollo se realiza mediante historias de usuario y entregas incrementales.
 - [x] Ruta diaria.
 - [x] Acciones comerciales.
 - [x] Registro de mermas.
+- [x] Consulta rápida de vencimientos.
+- [x] Selección de lote según FEFO.
 - [ ] Dashboard de indicadores.
 - [ ] Reportes avanzados.
 - [ ] Mejoras de notificaciones.
