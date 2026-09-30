@@ -16,6 +16,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@SuppressWarnings("null")
 public class ProductoServiceImpl implements ProductoService {
 
     private final ProductoRepository productoRepository;
@@ -45,7 +46,7 @@ public class ProductoServiceImpl implements ProductoService {
     @Override
     @Transactional(readOnly = true)
     public ProductoResponseDTO obtenerPorCodigoBarra(String codigoBarra) {
-        Producto producto = productoRepository.findByCodigoBarra(codigoBarra)
+        Producto producto = productoRepository.findByCodigoBarra(codigoBarra.trim())
                 .orElseThrow(() -> new ResourceNotFoundException("Producto no encontrado con código de barras: " + codigoBarra));
         return mapToDTO(producto);
     }

@@ -21,6 +21,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@SuppressWarnings("null")
 public class OperacionStockServiceImpl implements OperacionStockService {
 
     private final LoteRepository loteRepository;

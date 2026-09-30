@@ -19,6 +19,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@SuppressWarnings("null")
 public class LoteServiceImpl implements LoteService {
 
     private final LoteRepository loteRepository;
@@ -75,5 +76,15 @@ public class LoteServiceImpl implements LoteService {
                 .ubicacion(lote.getUbicacion())
                 .diasHastaVencimiento((int) dias)
                 .build();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<LoteResponseDTO> buscarLotesPorFiltro(String filtro) {
+        if (filtro == null || filtro.trim().isEmpty()) {
+            return List.of(); // O puedes retornar una lista vacía
+        }
+        List<Lote> lotes = loteRepository.buscarLotesActivosPorProductoFiltro(filtro.trim());
+        return lotes.stream().map(this::mapToDTO).toList();
     }
 }

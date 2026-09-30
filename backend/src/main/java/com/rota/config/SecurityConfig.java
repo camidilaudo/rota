@@ -6,19 +6,20 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
@@ -28,7 +29,6 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final UsuarioRepository usuarioRepository;
 
-    // Se utiliza @Lazy en el filtro para romper la referencia circular con el UserDetailsService definido en esta misma clase
     public SecurityConfig(@Lazy JwtAuthenticationFilter jwtAuthFilter, UsuarioRepository usuarioRepository) {
         this.jwtAuthFilter = jwtAuthFilter;
         this.usuarioRepository = usuarioRepository;
@@ -37,17 +37,17 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(AbstractHttpConfigurer::disable)
+            .csrf(csrf -> csrf.disable()) 
             .authorizeHttpRequests(auth -> auth
                 // Endpoint público de Login
                 .requestMatchers("/api/auth/**").permitAll()
                 
-                // Endpoints exclusivos del DUEÑO (creación/modificación de productos, categorías, reportes)
+                // Endpoints exclusivos del DUEÑO
                 .requestMatchers(HttpMethod.POST, "/api/categorias/**", "/api/productos/**").hasRole("DUENO")
                 .requestMatchers(HttpMethod.PUT, "/api/categorias/**", "/api/productos/**").hasRole("DUENO")
                 .requestMatchers(HttpMethod.DELETE, "/api/categorias/**", "/api/productos/**").hasRole("DUENO")
                 
-                // Endpoints compartidos con REPOSITOR (recepción de lotes, mermas, consulta de rutas diarias)
+                // Endpoints compartidos con REPOSITOR
                 .requestMatchers("/api/lotes/**", "/api/operaciones/**", "/api/riesgo/**").hasAnyRole("DUENO", "REPOSITOR")
                 .requestMatchers(HttpMethod.GET, "/api/categorias/**", "/api/productos/**").hasAnyRole("DUENO", "REPOSITOR")
 
@@ -55,6 +55,10 @@ public class SecurityConfig {
             )
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            )
+            // CONFIGURACIÓN PROFESIONAL: Forzar respuesta HTTP 401 para solicitudes no autenticadas
+            .exceptionHandling(exception -> exception
+                .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
             )
             .authenticationProvider(authenticationProvider())
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);

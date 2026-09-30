@@ -22,7 +22,7 @@ public class LoteRiesgoResponseDTO {
     private Ubicacion ubicacion;
     private Integer diasHastaVencimiento;
     private Integer diasUmbralCritico;
-    private EstadoRiesgo estadoRiesgo;
+    private EstadoRiesgo estadoRiesgo; 
     private ModoNotificacion modoNotificacion;
     private BigDecimal valorEnRiesgo; // Cantidad * Costo
 }

@@ -10,4 +10,5 @@ public interface LoteService {
     LoteResponseDTO registrarLote(LoteRequestDTO dto);
     LoteResponseDTO actualizarUbicacion(Long loteId, Ubicacion nuevaUbicacion);
     List<LoteResponseDTO> obtenerLotesPorFEFO(Long productoId);
+    List<LoteResponseDTO> buscarLotesPorFiltro(String filtro);
 }

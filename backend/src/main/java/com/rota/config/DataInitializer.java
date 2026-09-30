@@ -16,6 +16,7 @@ import java.util.List;
 @Slf4j
 @Component
 @RequiredArgsConstructor
+@SuppressWarnings("null")
 public class DataInitializer implements CommandLineRunner {
 
     private final UsuarioRepository usuarioRepository;
@@ -49,24 +50,32 @@ public class DataInitializer implements CommandLineRunner {
                 .rol(Rol.ROLE_REPOSITOR)
                 .build());
 
-        // 2. Categorías con Umbrales Difieren por Rotación
-// Si en Categoria.java el atributo se llama umbralAlertaDias:
+// 2. Categorías
         Categoria lacteos = categoriaRepository.save(Categoria.builder()
                 .nombre("Lácteos")
                 .diasUmbralAlerta(7)
+                .diasUmbralCritico(3) // <-- ¡Agregado!
                 .modoNotificacion(ModoNotificacion.DIARIO)
+                .activa(true)
+                .esPiloto(false)
                 .build());
                 
         Categoria panaderia = categoriaRepository.save(Categoria.builder()
                 .nombre("Panadería")
-                .diasUmbralAlerta(3) // Alerta si vence en 3 días o menos
+                .diasUmbralAlerta(3)
+                .diasUmbralCritico(1) // <-- ¡Agregado!
                 .modoNotificacion(ModoNotificacion.CADA_2_DIAS)
+                .activa(true)
+                .esPiloto(false)
                 .build());
 
         Categoria fiambres = categoriaRepository.save(Categoria.builder()
                 .nombre("Fiambres y Embutidos")
                 .diasUmbralAlerta(10)
+                .diasUmbralCritico(5) // <-- ¡Agregado!
                 .modoNotificacion(ModoNotificacion.DIARIO)
+                .activa(true)
+                .esPiloto(false)
                 .build());
 
         // 3. Productos
@@ -95,20 +104,20 @@ public class DataInitializer implements CommandLineRunner {
                 .build());
 
         Producto quesoCremoso = productoRepository.save(Producto.builder()
-                .codigoBarra("7790003000015")
+                .codigoBarra("7790002000020")
                 .nombre("Queso Cremoso 1kg")
                 .costo(new BigDecimal("3500.00"))
                 .precioVenta(new BigDecimal("5200.00"))
                 .categoria(fiambres)
                 .build());
 
-        // 4. Lotes con Distintos Estados de Vencimiento
+        // 4. Lotes
         LocalDate hoy = LocalDate.now();
 
         Lote loteCrítico1 = Lote.builder()
                 .producto(leche)
                 .cantidad(25)
-                .fechaVencimiento(hoy.plusDays(1)) // Vence mañana -> CRÍTICO / ROJO
+                .fechaVencimiento(hoy.plusDays(1))
                 .ubicacion(Ubicacion.GONDOLA)
                 .porcentajeDescuento(BigDecimal.ZERO)
                 .build();
@@ -116,7 +125,7 @@ public class DataInitializer implements CommandLineRunner {
         Lote loteAlerta1 = Lote.builder()
                 .producto(yogur)
                 .cantidad(15)
-                .fechaVencimiento(hoy.plusDays(5)) // Vence en 5 días (Umbral 7) -> ALERTA / AMARILLO
+                .fechaVencimiento(hoy.plusDays(5))
                 .ubicacion(Ubicacion.DEPOSITO)
                 .porcentajeDescuento(BigDecimal.ZERO)
                 .build();
@@ -124,7 +133,7 @@ public class DataInitializer implements CommandLineRunner {
         Lote loteAlerta2 = Lote.builder()
                 .producto(panLactal)
                 .cantidad(10)
-                .fechaVencimiento(hoy.plusDays(2)) // Vence en 2 días (Umbral 3) -> ALERTA / AMARILLO
+                .fechaVencimiento(hoy.plusDays(2))
                 .ubicacion(Ubicacion.GONDOLA)
                 .porcentajeDescuento(BigDecimal.ZERO)
                 .build();
@@ -132,7 +141,7 @@ public class DataInitializer implements CommandLineRunner {
         Lote loteOk1 = Lote.builder()
                 .producto(leche)
                 .cantidad(50)
-                .fechaVencimiento(hoy.plusDays(25)) // Vence en 25 días -> NORMAL / VERDE
+                .fechaVencimiento(hoy.plusDays(25))
                 .ubicacion(Ubicacion.DEPOSITO)
                 .porcentajeDescuento(BigDecimal.ZERO)
                 .build();
@@ -140,7 +149,7 @@ public class DataInitializer implements CommandLineRunner {
         Lote loteOk2 = Lote.builder()
                 .producto(quesoCremoso)
                 .cantidad(8)
-                .fechaVencimiento(hoy.plusDays(40)) // Vence en 40 días -> NORMAL / VERDE
+                .fechaVencimiento(hoy.plusDays(40))
                 .ubicacion(Ubicacion.GONDOLA)
                 .porcentajeDescuento(BigDecimal.ZERO)
                 .build();
@@ -148,7 +157,7 @@ public class DataInitializer implements CommandLineRunner {
         loteRepository.saveAll(List.of(loteCrítico1, loteAlerta1, loteAlerta2, loteOk1, loteOk2));
 
         log.info("¡Datos semilla cargados exitosamente!");
-        log.info("Credenciales cargadas -> Dueño: dueno@comercio.com / 123456");
-        log.info("Credenciales cargadas -> Repositor: repositor@comercio.com / 123456");
+        log.info("Credenciales cargadas -> Dueño: {} / 123456", dueno.getEmail());
+        log.info("Credenciales cargadas -> Repositor: {} / 123456", repositor.getEmail());
     }
 }
