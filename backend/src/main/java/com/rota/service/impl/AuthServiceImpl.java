@@ -11,6 +11,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -21,6 +22,7 @@ public class AuthServiceImpl implements AuthService {
     private final AuthenticationManager authenticationManager;
 
     @Override
+    @Transactional(readOnly = true)
     public AuthResponseDTO login(AuthRequestDTO request) {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
@@ -38,6 +40,8 @@ public class AuthServiceImpl implements AuthService {
                 .token(jwtToken)
                 .email(usuario.getEmail())
                 .rol(usuario.getRol().name())
+                .comercioId(usuario.getComercio() != null ? usuario.getComercio().getId() : null)
+                .comercioNombre(usuario.getComercio() != null ? usuario.getComercio().getNombre() : null)
                 .build();
     }
 }

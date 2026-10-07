@@ -19,6 +19,7 @@ import java.util.List;
 @SuppressWarnings("null")
 public class DataInitializer implements CommandLineRunner {
 
+    private final ComercioRepository comercioRepository;
     private final UsuarioRepository usuarioRepository;
     private final CategoriaRepository categoriaRepository;
     private final ProductoRepository productoRepository;
@@ -35,12 +36,21 @@ public class DataInitializer implements CommandLineRunner {
 
         log.info("Cargando datos de prueba (DataInitializer)...");
 
-        // 1. Usuarios de Prueba
+        // 1. Comercio de Prueba (HU-01)
+        Comercio comercio = comercioRepository.save(Comercio.builder()
+                .nombre("Almacén Don Carlos")
+                .cuit("20-12345678-9")
+                .direccion("Av. Siempre Viva 742")
+                .activo(true)
+                .build());
+
+        // 2. Usuarios de Prueba asociados al comercio
         Usuario dueno = usuarioRepository.save(Usuario.builder()
                 .nombre("Carlos Dueño")
                 .email("dueno@comercio.com")
                 .password(passwordEncoder.encode("123456"))
                 .rol(Rol.ROLE_DUENO)
+                .comercio(comercio)
                 .build());
 
         Usuario repositor = usuarioRepository.save(Usuario.builder()
@@ -48,16 +58,18 @@ public class DataInitializer implements CommandLineRunner {
                 .email("repositor@comercio.com")
                 .password(passwordEncoder.encode("123456"))
                 .rol(Rol.ROLE_REPOSITOR)
+                .comercio(comercio)
                 .build());
 
-// 2. Categorías
+        // 3. Categorías del comercio (Lácteos queda como categoría piloto)
         Categoria lacteos = categoriaRepository.save(Categoria.builder()
                 .nombre("Lácteos")
                 .diasUmbralAlerta(7)
                 .diasUmbralCritico(3) // <-- ¡Agregado!
                 .modoNotificacion(ModoNotificacion.DIARIO)
                 .activa(true)
-                .esPiloto(false)
+                .esPiloto(true)
+                .comercio(comercio)
                 .build());
                 
         Categoria panaderia = categoriaRepository.save(Categoria.builder()
@@ -67,6 +79,7 @@ public class DataInitializer implements CommandLineRunner {
                 .modoNotificacion(ModoNotificacion.CADA_2_DIAS)
                 .activa(true)
                 .esPiloto(false)
+                .comercio(comercio)
                 .build());
 
         Categoria fiambres = categoriaRepository.save(Categoria.builder()
@@ -76,9 +89,10 @@ public class DataInitializer implements CommandLineRunner {
                 .modoNotificacion(ModoNotificacion.DIARIO)
                 .activa(true)
                 .esPiloto(false)
+                .comercio(comercio)
                 .build());
 
-        // 3. Productos
+        // 4. Productos
         Producto leche = productoRepository.save(Producto.builder()
                 .codigoBarra("7790001000011")
                 .nombre("Leche Entera 1L")
@@ -111,7 +125,7 @@ public class DataInitializer implements CommandLineRunner {
                 .categoria(fiambres)
                 .build());
 
-        // 4. Lotes
+        // 5. Lotes
         LocalDate hoy = LocalDate.now();
 
         Lote loteCrítico1 = Lote.builder()
@@ -157,6 +171,7 @@ public class DataInitializer implements CommandLineRunner {
         loteRepository.saveAll(List.of(loteCrítico1, loteAlerta1, loteAlerta2, loteOk1, loteOk2));
 
         log.info("¡Datos semilla cargados exitosamente!");
+        log.info("Comercio cargado -> {} (categoría piloto: {})", comercio.getNombre(), lacteos.getNombre());
         log.info("Credenciales cargadas -> Dueño: {} / 123456", dueno.getEmail());
         log.info("Credenciales cargadas -> Repositor: {} / 123456", repositor.getEmail());
     }
