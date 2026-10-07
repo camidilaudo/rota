@@ -1,5 +1,6 @@
 package com.rota.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.rota.entity.EstadoRiesgo;
 import com.rota.entity.ModoNotificacion;
 import com.rota.entity.Ubicacion;
@@ -24,5 +25,8 @@ public class LoteRiesgoResponseDTO {
     private Integer diasUmbralCritico;
     private EstadoRiesgo estadoRiesgo; 
     private ModoNotificacion modoNotificacion;
+
+    // HU-05: dato financiero, se omite (null) para el usuario operativo
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private BigDecimal valorEnRiesgo; // Cantidad * Costo
 }

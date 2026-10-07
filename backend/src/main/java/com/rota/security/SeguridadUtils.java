@@ -1,5 +1,6 @@
 package com.rota.security;
 
+import com.rota.entity.Rol;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -18,6 +19,15 @@ public final class SeguridadUtils {
     public static String obtenerEmailAutenticado() {
         Authentication auth = obtenerAutenticacion();
         return auth != null ? auth.getName() : null;
+    }
+
+    /**
+     * HU-05: indica si el usuario autenticado es operativo (ROLE_REPOSITOR) y no debe ver datos financieros.
+     */
+    public static boolean esRepositor() {
+        Authentication auth = obtenerAutenticacion();
+        return auth != null && auth.getAuthorities().stream()
+                .anyMatch(a -> Rol.ROLE_REPOSITOR.name().equals(a.getAuthority()));
     }
 
     private static Authentication obtenerAutenticacion() {

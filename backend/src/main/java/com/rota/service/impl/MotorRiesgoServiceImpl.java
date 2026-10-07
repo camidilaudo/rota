@@ -7,6 +7,7 @@ import com.rota.entity.EstadoRiesgo;
 import com.rota.entity.Lote;
 import com.rota.entity.Producto;
 import com.rota.repository.LoteRepository;
+import com.rota.security.SeguridadUtils;
 import com.rota.service.MotorRiesgoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -60,7 +61,8 @@ public class MotorRiesgoServiceImpl implements MotorRiesgoService {
         return RutaDiariaResponseDTO.builder()
                 .totalLotesAtencion(priorizados.size())
                 .totalLotesVencidos((int) vencidos)
-                .valorTotalEnRiesgo(valorTotal)
+                // HU-05: el usuario operativo no visualiza el valor en riesgo
+                .valorTotalEnRiesgo(SeguridadUtils.esRepositor() ? null : valorTotal)
                 .lotesPriorizados(priorizados)
                 .build();
     }
@@ -111,7 +113,7 @@ public class MotorRiesgoServiceImpl implements MotorRiesgoService {
                 .diasUmbralCritico(umbral)
                 .estadoRiesgo(estado)
                 .modoNotificacion(categoria != null ? categoria.getModoNotificacion() : null)
-                .valorEnRiesgo(valorRiesgo)
+                .valorEnRiesgo(SeguridadUtils.esRepositor() ? null : valorRiesgo)
                 .build();
     }
 }

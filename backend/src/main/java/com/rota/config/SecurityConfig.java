@@ -46,7 +46,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/categorias/**", "/api/productos/**").hasRole("DUENO")
                 .requestMatchers(HttpMethod.PUT, "/api/categorias/**", "/api/productos/**").hasRole("DUENO")
                 .requestMatchers(HttpMethod.DELETE, "/api/categorias/**", "/api/productos/**").hasRole("DUENO")
-                .requestMatchers("/api/comercios/**").hasRole("DUENO")
+                .requestMatchers("/api/comercios/**", "/api/usuarios/**").hasRole("DUENO")
                 
                 // Endpoints compartidos con REPOSITOR
                 .requestMatchers("/api/lotes/**", "/api/operaciones/**", "/api/riesgo/**").hasAnyRole("DUENO", "REPOSITOR")
