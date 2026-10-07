@@ -1,5 +1,6 @@
 package com.rota.repository;
 
+import com.rota.entity.Rol;
 import com.rota.entity.Usuario;
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
@@ -7,4 +8,5 @@ import java.util.Optional;
 public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
     Optional<Usuario> findByEmail(String email);
     boolean existsByEmail(String email);
+    Optional<Usuario> findFirstByComercioIdAndRol(Long comercioId, Rol rol);
 }

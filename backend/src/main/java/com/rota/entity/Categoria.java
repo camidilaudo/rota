@@ -42,4 +42,9 @@ public class Categoria {
     @Column(nullable = false)
     @Builder.Default
     private Boolean activa = true;
+
+    // HU-01: Comercio al que pertenece la categoría (nullable para no romper categorías previas)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "comercio_id")
+    private Comercio comercio;
 }

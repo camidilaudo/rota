@@ -41,6 +41,11 @@ public class Usuario implements UserDetails {
     @Column(nullable = false, length = 20)
     private Rol rol;
 
+    // HU-01: Comercio al que pertenece el usuario
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "comercio_id")
+    private Comercio comercio;
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority(rol.name()));

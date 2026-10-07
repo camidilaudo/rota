@@ -4,17 +4,27 @@ import com.rota.dto.request.TrasladoLoteRequestDTO;
 import com.rota.dto.response.LoteResponseDTO;
 import com.rota.entity.Categoria;
 import com.rota.entity.Lote;
+import com.rota.entity.MovimientoStock;
 import com.rota.entity.Producto;
+import com.rota.entity.Rol;
+import com.rota.entity.TipoMovimiento;
 import com.rota.entity.Ubicacion;
+import com.rota.entity.Usuario;
 import com.rota.repository.LoteRepository;
+import com.rota.repository.MovimientoStockRepository;
+import com.rota.repository.UsuarioRepository;
 import com.rota.service.impl.RotacionServiceImpl;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.ArgumentCaptor;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.time.LocalDate;
 import java.util.Optional;
@@ -30,10 +40,17 @@ class TrasladoLoteTest {
     @Mock
     private LoteRepository loteRepository;
 
+    @Mock
+    private MovimientoStockRepository movimientoStockRepository;
+
+    @Mock
+    private UsuarioRepository usuarioRepository;
+
     @InjectMocks
     private RotacionServiceImpl rotacionService;
 
     private Lote loteDeposito;
+    private Usuario repositor;
 
     @BeforeEach
     void setUp() {
@@ -48,6 +65,16 @@ class TrasladoLoteTest {
                 .fechaVencimiento(LocalDate.now().plusDays(20))
                 .fechaRecepcion(LocalDate.now().minusDays(2))
                 .build();
+
+        // HU-12: el traslado se registra a nombre del usuario autenticado
+        repositor = Usuario.builder().id(7L).nombre("Juan Repositor").email("repositor@comercio.com").rol(Rol.ROLE_REPOSITOR).build();
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(repositor, null, repositor.getAuthorities()));
+    }
+
+    @AfterEach
+    void tearDown() {
+        SecurityContextHolder.clearContext();
     }
 
     @Test
@@ -59,11 +86,22 @@ class TrasladoLoteTest {
 
         when(loteRepository.findById(50L)).thenReturn(Optional.of(loteDeposito));
         when(loteRepository.save(any(Lote.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(usuarioRepository.findByEmail("repositor@comercio.com")).thenReturn(Optional.of(repositor));
 
         LoteResponseDTO respuesta = rotacionService.trasladarLoteAGondola(request);
 
         assertNotNull(respuesta);
         // Ajustado a atLeastOnce() o times(2) según la lógica del servicio
         verify(loteRepository, atLeastOnce()).save(any(Lote.class));
+
+        ArgumentCaptor<MovimientoStock> captor = ArgumentCaptor.forClass(MovimientoStock.class);
+        verify(movimientoStockRepository).save(captor.capture());
+        MovimientoStock movimiento = captor.getValue();
+        assertEquals(TipoMovimiento.TRASLADO, movimiento.getTipo());
+        assertEquals(5, movimiento.getCantidad());
+        assertEquals(Ubicacion.DEPOSITO, movimiento.getUbicacionOrigen());
+        assertEquals(Ubicacion.GONDOLA, movimiento.getUbicacionDestino());
+        assertSame(repositor, movimiento.getUsuario());
+        assertSame(loteDeposito, movimiento.getLote());
     }
 }

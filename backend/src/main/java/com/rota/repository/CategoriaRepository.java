@@ -9,4 +9,5 @@ public interface CategoriaRepository extends JpaRepository<Categoria, Long> {
     Optional<Categoria> findByNombreIgnoreCase(String nombre);
     List<Categoria> findByEsPilotoTrueAndActivaTrue();
     List<Categoria> findByActivaTrue();
+    List<Categoria> findByComercioIdAndEsPilotoTrue(Long comercioId);
 }

@@ -4,8 +4,15 @@ import com.rota.dto.request.TrasladoLoteRequestDTO;
 import com.rota.dto.response.AlertaRotacionResponseDTO;
 import com.rota.dto.response.LoteResponseDTO;
 import com.rota.entity.Lote;
+import com.rota.entity.MovimientoStock;
+import com.rota.entity.TipoMovimiento;
 import com.rota.entity.Ubicacion;
+import com.rota.entity.Usuario;
+import com.rota.exception.BadRequestException;
 import com.rota.repository.LoteRepository;
+import com.rota.repository.MovimientoStockRepository;
+import com.rota.repository.UsuarioRepository;
+import com.rota.security.SeguridadUtils;
 import com.rota.service.RotacionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -24,6 +31,8 @@ import java.util.stream.Collectors;
 public class RotacionServiceImpl implements RotacionService {
 
     private final LoteRepository loteRepository;
+    private final MovimientoStockRepository movimientoStockRepository;
+    private final UsuarioRepository usuarioRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -111,6 +120,10 @@ public class RotacionServiceImpl implements RotacionService {
                     loteOrigen.getCantidad(), request.getCantidadATrasladar()));
         }
 
+        // HU-12: el movimiento queda registrado a nombre del usuario autenticado
+        Usuario usuario = usuarioRepository.findByEmail(SeguridadUtils.obtenerEmailAutenticado())
+                .orElseThrow(() -> new BadRequestException("No se pudo identificar al usuario autenticado para registrar el traslado."));
+
         Lote loteDestino;
 
         // Caso 1: Traslado TOTAL de la mercadería
@@ -135,6 +148,16 @@ public class RotacionServiceImpl implements RotacionService {
 
             loteDestino = loteRepository.save(nuevoLoteGondola);
         }
+
+        // HU-12: registro del movimiento con usuario y fecha (la fecha la asigna @CreationTimestamp)
+        movimientoStockRepository.save(MovimientoStock.builder()
+                .lote(loteOrigen)
+                .tipo(TipoMovimiento.TRASLADO)
+                .cantidad(request.getCantidadATrasladar())
+                .ubicacionOrigen(Ubicacion.DEPOSITO)
+                .ubicacionDestino(Ubicacion.GONDOLA)
+                .usuario(usuario)
+                .build());
 
         return mapToDTO(loteDestino);
     }
