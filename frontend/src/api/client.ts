@@ -41,6 +41,7 @@ export function setUnauthorizedHandler(handler: (() => void) | null): void {
 }
 
 const NETWORK_MESSAGE = 'No pudimos conectarnos con el servidor. Revisá tu conexión e intentá de nuevo.'
+export const FORBIDDEN_MESSAGE = 'No tenés permiso para esta acción.'
 
 function buildUrl(path: string, query?: Record<string, QueryValue>): string {
   if (!query) return path
@@ -86,8 +87,12 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
 
   if (response.ok) return data as T
 
+  // 401 = sesión inválida o vencida: se cierra. 403 = sesión válida sin permiso: se mantiene.
   if (response.status === 401 && !skipUnauthorizedHandler) {
     unauthorizedHandler?.()
+  }
+  if (response.status === 403) {
+    throw new ApiError(FORBIDDEN_MESSAGE, 403)
   }
 
   const errorBody = (data ?? {}) as ErrorBody

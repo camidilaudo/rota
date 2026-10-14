@@ -47,6 +47,18 @@ describe('apiRequest', () => {
     expect(handler).toHaveBeenCalledTimes(1)
   })
 
+  it('un 403 avisa que no hay permiso y no cierra la sesión', async () => {
+    const handler = vi.fn()
+    setUnauthorizedHandler(handler)
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(jsonResponse({ status: 403, message: 'Forbidden' }, 403)))
+
+    const err = (await apiRequest('/api/usuarios', { method: 'POST', body: {} }).catch((e: unknown) => e)) as ApiError
+
+    expect(err.status).toBe(403)
+    expect(err.message).toBe('No tenés permiso para esta acción.')
+    expect(handler).not.toHaveBeenCalled()
+  })
+
   it('marca como error de red cuando el backend no responde', async () => {
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('Failed to fetch')))
 

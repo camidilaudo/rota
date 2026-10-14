@@ -27,6 +27,20 @@ describe('sesión', () => {
     expect(JSON.parse(init.body)).toEqual({ email: 'repositor@comercio.com', password: '123456' })
   })
 
+  it('con credenciales inválidas (401) avisa sin tocar la sesión', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(jsonResponse({ status: 401, message: 'Email o contraseña incorrectos' }, 401)))
+    const user = userEvent.setup()
+    renderApp('/login')
+
+    await user.type(screen.getByLabelText('Email'), 'dueno@comercio.com')
+    await user.type(screen.getByLabelText('Contraseña'), 'mal')
+    await user.click(screen.getByRole('button', { name: 'Ingresar' }))
+
+    expect(await screen.findByText('Email o contraseña incorrectos.')).toBeInTheDocument()
+    expect(screen.queryByText('Tu sesión se cerró. Ingresá de nuevo para seguir.')).not.toBeInTheDocument()
+    expect(readSession()).toBeNull()
+  })
+
   it('muestra un error si el login falla y no guarda nada', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(jsonResponse({ message: 'Ocurrió un error interno' }, 500)))
     const user = userEvent.setup()

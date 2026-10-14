@@ -24,7 +24,8 @@ function validate(email: string, password: string): FieldErrors {
 
 function loginErrorMessage(err: unknown): string {
   if (err instanceof ApiError && err.isNetworkError) return err.message
-  // El backend responde 500 ante credenciales inválidas, así que no se puede distinguir del resto.
+  if (err instanceof ApiError && err.status === 401) return 'Email o contraseña incorrectos.'
+  // Sin DEF-01 el backend responde 500 ante credenciales inválidas.
   return 'No pudimos iniciar sesión. Revisá el email y la contraseña.'
 }
 
