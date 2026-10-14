@@ -6,6 +6,7 @@ import { LoginPage } from './pages/LoginPage'
 import { NotFoundPage } from './pages/NotFoundPage'
 import { PendingScreen } from './pages/PendingScreen'
 import { RecepcionPage } from './pages/RecepcionPage'
+import { ReponerPage } from './pages/ReponerPage'
 import { RutaDelDiaPage } from './pages/RutaDelDiaPage'
 
 export function AppRoutes() {
@@ -16,10 +17,7 @@ export function AppRoutes() {
         <Route element={<AppLayout />}>
           <Route index element={<RutaDelDiaPage />} />
           <Route path="recepcion" element={<RecepcionPage />} />
-          <Route
-            path="reponer"
-            element={<PendingScreen title="Reponer" description="Qué lote bajar primero a la góndola." />}
-          />
+          <Route path="reponer" element={<ReponerPage />} />
           <Route
             path="consulta"
             element={<PendingScreen title="Consulta" description="Buscá un producto y mirá sus lotes." />}
