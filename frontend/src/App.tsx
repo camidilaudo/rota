@@ -2,6 +2,7 @@ import { Route, Routes } from 'react-router-dom'
 import { RequireAuth, RequireRole } from './auth/guards'
 import { AppLayout } from './layout/AppLayout'
 import { SOLO_DUENO } from './navigation'
+import { ConsultaPage } from './pages/ConsultaPage'
 import { LoginPage } from './pages/LoginPage'
 import { NotFoundPage } from './pages/NotFoundPage'
 import { PendingScreen } from './pages/PendingScreen'
@@ -18,10 +19,7 @@ export function AppRoutes() {
           <Route index element={<RutaDelDiaPage />} />
           <Route path="recepcion" element={<RecepcionPage />} />
           <Route path="reponer" element={<ReponerPage />} />
-          <Route
-            path="consulta"
-            element={<PendingScreen title="Consulta" description="Buscá un producto y mirá sus lotes." />}
-          />
+          <Route path="consulta" element={<ConsultaPage />} />
           <Route element={<RequireRole roles={SOLO_DUENO} />}>
             <Route
               path="configuracion"
