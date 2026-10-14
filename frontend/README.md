@@ -2,7 +2,7 @@
 
 App web mobile first para controlar lotes y vencimientos. React 18 + Vite + TypeScript + Tailwind CSS v4, con react-router-dom. Pruebas con Vitest y Testing Library.
 
-El design system está en [DESIGN.md](./DESIGN.md).
+El design system está en [DESIGN.md](./DESIGN.md) y el guion para mostrar el MVP en vivo, en [DEMO.md](./DEMO.md).
 
 ## Requisitos
 
