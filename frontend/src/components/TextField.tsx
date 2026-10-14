@@ -1,4 +1,4 @@
-import { useId, type InputHTMLAttributes, type ReactNode } from 'react'
+import { forwardRef, useId, type InputHTMLAttributes, type ReactNode } from 'react'
 
 interface TextFieldProps extends InputHTMLAttributes<HTMLInputElement> {
   label: string
@@ -8,7 +8,10 @@ interface TextFieldProps extends InputHTMLAttributes<HTMLInputElement> {
   trailing?: ReactNode
 }
 
-export function TextField({ label, error, hint, trailing, id, className = '', ...props }: TextFieldProps) {
+export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(function TextField(
+  { label, error, hint, trailing, id, className = '', ...props },
+  ref,
+) {
   const autoId = useId()
   const inputId = id ?? autoId
   const describedBy = error ? `${inputId}-error` : hint ? `${inputId}-hint` : undefined
@@ -20,6 +23,7 @@ export function TextField({ label, error, hint, trailing, id, className = '', ..
       </label>
       <div className="relative">
         <input
+          ref={ref}
           id={inputId}
           aria-invalid={error ? true : undefined}
           aria-describedby={describedBy}
@@ -41,4 +45,4 @@ export function TextField({ label, error, hint, trailing, id, className = '', ..
       ) : null}
     </div>
   )
-}
+})

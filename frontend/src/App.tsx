@@ -5,6 +5,7 @@ import { SOLO_DUENO } from './navigation'
 import { LoginPage } from './pages/LoginPage'
 import { NotFoundPage } from './pages/NotFoundPage'
 import { PendingScreen } from './pages/PendingScreen'
+import { RecepcionPage } from './pages/RecepcionPage'
 import { RutaDelDiaPage } from './pages/RutaDelDiaPage'
 
 export function AppRoutes() {
@@ -14,10 +15,7 @@ export function AppRoutes() {
       <Route element={<RequireAuth />}>
         <Route element={<AppLayout />}>
           <Route index element={<RutaDelDiaPage />} />
-          <Route
-            path="recepcion"
-            element={<PendingScreen title="Recepción" description="Cargá los lotes que llegan al comercio." />}
-          />
+          <Route path="recepcion" element={<RecepcionPage />} />
           <Route
             path="reponer"
             element={<PendingScreen title="Reponer" description="Qué lote bajar primero a la góndola." />}
