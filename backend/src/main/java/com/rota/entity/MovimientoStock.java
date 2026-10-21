@@ -39,6 +39,8 @@ public class MovimientoStock {
     @Column(name = "ubicacion_origen", nullable = false, length = 30)
     private Ubicacion ubicacionOrigen;
 
+    // HU-20: en una VENTA no hay una ubicación de destino real; se usa la misma que el origen
+    // (la mercadería sale del comercio, no se mueve físicamente dentro de él)
     @Enumerated(EnumType.STRING)
     @Column(name = "ubicacion_destino", nullable = false, length = 30)
     private Ubicacion ubicacionDestino;

@@ -13,6 +13,7 @@ import com.rota.entity.Usuario;
 import com.rota.repository.LoteRepository;
 import com.rota.repository.MovimientoStockRepository;
 import com.rota.repository.UsuarioRepository;
+import com.rota.service.HistorialAccionService;
 import com.rota.service.impl.RotacionServiceImpl;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -45,6 +46,9 @@ class TrasladoLoteTest {
 
     @Mock
     private UsuarioRepository usuarioRepository;
+
+    @Mock
+    private HistorialAccionService historialAccionService;
 
     @InjectMocks
     private RotacionServiceImpl rotacionService;

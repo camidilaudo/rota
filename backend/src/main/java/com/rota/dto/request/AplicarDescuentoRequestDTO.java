@@ -17,4 +17,7 @@ public class AplicarDescuentoRequestDTO {
     @DecimalMin(value = "5.00", message = "El descuento mínimo es del 5%")
     @DecimalMax(value = "90.00", message = "El descuento máximo permitido es del 90%")
     private BigDecimal porcentajeDescuento;
+
+    // HU-22: motivo opcional para trazabilidad en el historial de acciones del lote
+    private String motivo;
 }
