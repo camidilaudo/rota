@@ -8,6 +8,8 @@
 
 **Rota** es una solución web para la gestión inteligente de inventario, enfocada en la **prevención de desperdicios, vencimientos y pérdidas económicas** en pequeños comercios.
 
+> 📱 Frontend: cómo instalarlo y correrlo en [frontend/README.md](./frontend/README.md).
+
 El sistema permite registrar productos y lotes, controlar fechas de vencimiento, generar alertas, priorizar tareas mediante una ruta diaria y registrar acciones comerciales o mermas.
 
 ---
