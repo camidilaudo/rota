@@ -26,8 +26,10 @@ public class Lote {
     @JoinColumn(name = "producto_id", nullable = false)
     private Producto producto;
 
+    // HU-20/HU-22: un lote puede agotarse por completo (venta o baja total), por eso se permite 0.
+    // La creación de lotes exige mínimo 1 unidad vía LoteRequestDTO.
     @NotNull(message = "La cantidad es obligatoria")
-    @Min(value = 1, message = "La cantidad del lote debe ser mayor a 0")
+    @Min(value = 0, message = "La cantidad del lote no puede ser negativa")
     @Column(nullable = false)
     private Integer cantidad;
 

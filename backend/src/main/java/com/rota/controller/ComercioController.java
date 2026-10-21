@@ -1,5 +1,6 @@
 package com.rota.controller;
 
+import com.rota.dto.request.ActualizarMargenMinimoRequestDTO;
 import com.rota.dto.request.ComercioRequestDTO;
 import com.rota.dto.response.ComercioResponseDTO;
 import com.rota.service.ComercioService;
@@ -27,5 +28,14 @@ public class ComercioController {
     @PreAuthorize("hasRole('DUENO')")
     public ResponseEntity<ComercioResponseDTO> obtenerPorId(@PathVariable Long id) {
         return ResponseEntity.ok(comercioService.obtenerPorId(id));
+    }
+
+    // HU-19: el dueño configura el piso de margen mínimo del comercio
+    @PatchMapping("/{id}/margen-minimo")
+    @PreAuthorize("hasRole('DUENO')")
+    public ResponseEntity<ComercioResponseDTO> actualizarMargenMinimo(
+            @PathVariable Long id,
+            @Valid @RequestBody ActualizarMargenMinimoRequestDTO dto) {
+        return ResponseEntity.ok(comercioService.actualizarMargenMinimo(id, dto));
     }
 }

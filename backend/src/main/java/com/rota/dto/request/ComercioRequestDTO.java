@@ -1,10 +1,13 @@
 package com.rota.dto.request;
 
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Data
@@ -22,4 +25,9 @@ public class ComercioRequestDTO {
 
     @NotEmpty(message = "Debe seleccionar al menos una categoría piloto")
     private List<Long> categoriasPilotoIds;
+
+    // HU-19: opcional; si no se envía, se usa el valor por defecto del comercio
+    @DecimalMin(value = "0.00", message = "El margen mínimo no puede ser negativo")
+    @DecimalMax(value = "95.00", message = "El margen mínimo no puede superar el 95%")
+    private BigDecimal margenMinimoPorcentaje;
 }
