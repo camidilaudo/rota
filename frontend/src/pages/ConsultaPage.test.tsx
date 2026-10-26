@@ -35,6 +35,8 @@ describe('Consulta rápida', () => {
     expect(screen.getByText('Góndola')).toBeInTheDocument()
     expect(screen.getByText('Depósito')).toBeInTheDocument()
     expect(fetchMock.mock.calls.at(-1)![0]).toContain('query=leche')
+    // cada lote se puede abrir desde la consulta, aunque no esté en la ruta del día
+    expect(screen.getAllByRole('link', { name: 'Ver lote' }).map((a) => a.getAttribute('href'))).toEqual(['/lotes/1', '/lotes/4'])
   })
 
   it('avisa cuando no hay resultados', async () => {

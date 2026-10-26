@@ -17,12 +17,21 @@ export function formatDate(isoDate: string): string {
   return `${d}/${m}/${y}`
 }
 
+/** "2026-10-21T14:35:10" -> "21/10/2026 14:35". */
+export function formatDateTime(isoDateTime: string): string {
+  return `${formatDate(isoDateTime)} ${isoDateTime.slice(11, 16)}`
+}
+
 export function describeDaysLeft(days: number): string {
   if (days < -1) return `Venció hace ${formatNumber(-days)} días`
   if (days === -1) return 'Venció ayer'
   if (days === 0) return 'Vence hoy'
   if (days === 1) return 'Vence mañana'
   return `Vence en ${formatNumber(days)} días`
+}
+
+export function formatPercent(value: number): string {
+  return `${formatNumber(value)}%`
 }
 
 export function formatUnits(cantidad: number): string {

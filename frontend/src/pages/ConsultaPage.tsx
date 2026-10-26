@@ -1,4 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react'
+import { Link } from 'react-router-dom'
 import { buscarProductos } from '../api/endpoints'
 import { Button } from '../components/Button'
 import { Icon } from '../components/Icon'
@@ -41,7 +42,12 @@ function ProductoCard({ producto }: { producto: ProductoConLotes }) {
                   {describeDaysLeft(lote.diasHastaVencimiento)} · {formatUnits(lote.cantidad)}
                 </p>
               </div>
-              <UbicacionTag ubicacion={lote.ubicacion} />
+              <div className="flex shrink-0 flex-col items-end gap-1">
+                <UbicacionTag ubicacion={lote.ubicacion} />
+                <Link to={`/lotes/${lote.id}`} className="text-sm font-bold text-primary-strong underline-offset-2 hover:underline">
+                  Ver lote
+                </Link>
+              </div>
             </li>
           ))}
         </ul>
