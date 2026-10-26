@@ -1,5 +1,6 @@
 package com.rota.service.impl;
 
+import com.rota.dto.request.ActualizarMargenMinimoRequestDTO;
 import com.rota.dto.request.ComercioRequestDTO;
 import com.rota.dto.response.CategoriaResponseDTO;
 import com.rota.dto.response.ComercioResponseDTO;
@@ -53,12 +54,15 @@ public class ComercioServiceImpl implements ComercioService {
                     throw new BadRequestException("La categoría '" + c.getNombre() + "' ya pertenece a otro comercio");
                 });
 
-        Comercio comercio = comercioRepository.save(Comercio.builder()
+        Comercio.ComercioBuilder comercioBuilder = Comercio.builder()
                 .nombre(dto.getNombre().trim())
                 .cuit(dto.getCuit() != null ? dto.getCuit().trim() : null)
                 .direccion(dto.getDireccion() != null ? dto.getDireccion().trim() : null)
-                .activo(true)
-                .build());
+                .activo(true);
+        if (dto.getMargenMinimoPorcentaje() != null) {
+            comercioBuilder.margenMinimoPorcentaje(dto.getMargenMinimoPorcentaje());
+        }
+        Comercio comercio = comercioRepository.save(comercioBuilder.build());
 
         // HU-01: las categorías seleccionadas quedan como piloto y activas dentro del comercio
         categoriasPiloto.forEach(c -> {
@@ -88,6 +92,22 @@ public class ComercioServiceImpl implements ComercioService {
         return mapToDTO(comercio, duenoEmail, categoriaRepository.findByComercioIdAndEsPilotoTrue(id));
     }
 
+    @Override
+    @Transactional
+    public ComercioResponseDTO actualizarMargenMinimo(Long id, ActualizarMargenMinimoRequestDTO dto) {
+        Comercio comercio = comercioRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Comercio no encontrado con ID: " + id));
+
+        comercio.setMargenMinimoPorcentaje(dto.getMargenMinimoPorcentaje());
+        comercioRepository.save(comercio);
+
+        String duenoEmail = usuarioRepository.findFirstByComercioIdAndRol(id, Rol.ROLE_DUENO)
+                .map(Usuario::getEmail)
+                .orElse(null);
+
+        return mapToDTO(comercio, duenoEmail, categoriaRepository.findByComercioIdAndEsPilotoTrue(id));
+    }
+
     private ComercioResponseDTO mapToDTO(Comercio comercio, String duenoEmail, List<Categoria> categoriasPiloto) {
         return ComercioResponseDTO.builder()
                 .id(comercio.getId())
@@ -95,6 +115,7 @@ public class ComercioServiceImpl implements ComercioService {
                 .cuit(comercio.getCuit())
                 .direccion(comercio.getDireccion())
                 .activo(comercio.getActivo())
+                .margenMinimoPorcentaje(comercio.getMargenMinimoPorcentaje())
                 .fechaAlta(comercio.getFechaAlta())
                 .duenoEmail(duenoEmail)
                 .categoriasPiloto(categoriasPiloto.stream().map(this::mapCategoriaToDTO).toList())

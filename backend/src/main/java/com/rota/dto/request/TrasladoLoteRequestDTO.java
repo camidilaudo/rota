@@ -13,4 +13,7 @@ public class TrasladoLoteRequestDTO {
     @NotNull(message = "La cantidad a trasladar es obligatoria")
     @Min(value = 1, message = "Debe trasladar al menos 1 unidad")
     private Integer cantidadATrasladar;
+
+    // HU-22: motivo opcional para trazabilidad en el historial de acciones del lote
+    private String motivo;
 }

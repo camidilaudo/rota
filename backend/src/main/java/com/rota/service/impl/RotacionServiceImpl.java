@@ -5,6 +5,7 @@ import com.rota.dto.response.AlertaRotacionResponseDTO;
 import com.rota.dto.response.LoteResponseDTO;
 import com.rota.entity.Lote;
 import com.rota.entity.MovimientoStock;
+import com.rota.entity.TipoAccion;
 import com.rota.entity.TipoMovimiento;
 import com.rota.entity.Ubicacion;
 import com.rota.entity.Usuario;
@@ -13,6 +14,7 @@ import com.rota.repository.LoteRepository;
 import com.rota.repository.MovimientoStockRepository;
 import com.rota.repository.UsuarioRepository;
 import com.rota.security.SeguridadUtils;
+import com.rota.service.HistorialAccionService;
 import com.rota.service.RotacionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -33,6 +35,7 @@ public class RotacionServiceImpl implements RotacionService {
     private final LoteRepository loteRepository;
     private final MovimientoStockRepository movimientoStockRepository;
     private final UsuarioRepository usuarioRepository;
+    private final HistorialAccionService historialAccionService;
 
     @Override
     @Transactional(readOnly = true)
@@ -158,6 +161,12 @@ public class RotacionServiceImpl implements RotacionService {
                 .ubicacionDestino(Ubicacion.GONDOLA)
                 .usuario(usuario)
                 .build());
+
+        // HU-22: queda trazado quién trasladó el lote, cuándo y por qué
+        String motivo = (request.getMotivo() != null && !request.getMotivo().isBlank())
+                ? request.getMotivo().trim()
+                : "Reposición de góndola por rotación FEFO";
+        historialAccionService.registrarAccion(loteDestino, TipoAccion.TRASLADO, motivo, usuario);
 
         return mapToDTO(loteDestino);
     }
