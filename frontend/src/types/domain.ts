@@ -20,6 +20,12 @@ export interface LoteRiesgo {
   modoNotificacion: ModoNotificacion | null
   /** Solo llega para el dueño. */
   valorEnRiesgo?: number
+  /** HU-15: unidades que se venden por día, en promedio. */
+  rotacionDiariaVentas?: number
+  /** HU-15: días que tarda en agotarse el lote a ese ritmo (null si el producto nunca se vendió). */
+  diasCobertura?: number | null
+  /** HU-15: true si, al ritmo actual, el lote no se vende antes de vencer. */
+  riesgoPorVelocidad?: boolean
 }
 
 /** RutaDiariaResponseDTO */
@@ -110,4 +116,100 @@ export interface Usuario {
   email: string
   rol: Rol
   comercioId: number
+}
+
+export type TipoAccion = 'DESCUENTO' | 'TRASLADO' | 'BAJA'
+
+/** LoteAfectadoVentaDTO */
+export interface LoteAfectadoVenta {
+  loteId: number
+  cantidadDescontada: number
+  cantidadRestanteEnLote: number
+}
+
+/** VentaResponseDTO (HU-20) */
+export interface VentaRegistrada {
+  productoId: number
+  productoNombre: string
+  cantidadVendida: number
+  lotesAfectados: LoteAfectadoVenta[]
+  rotacionDiariaActualizada: number
+  mensaje: string
+}
+
+/** DescuentoSugeridoResponseDTO (HU-17 y HU-19) */
+export interface DescuentoSugerido {
+  loteId: number
+  productoNombre: string
+  cantidad: number
+  diasHastaVencimiento: number
+  velocidadVentaDiariaActual: number
+  velocidadVentaDiariaNecesaria: number
+  porcentajeDescuentoSugerido: number
+  margenMinimoPorcentaje: number
+  porcentajeDescuentoMaximoPorMargen: number
+  porcentajeDescuentoRecomendado: number
+  descuentoInsuficientePorMargen: boolean
+  mensaje: string
+}
+
+/** EscenarioProyectadoDTO */
+export interface EscenarioProyectado {
+  porcentajeDescuento: number
+  precioFinal: number
+  unidadesEstimadasVendidas: number
+  unidadesEstimadasDescartadas: number
+  margenGananciaEstimado: number
+  perdidaPorMermaEstimada: number
+  margenTotalProyectado: number
+}
+
+/** ComparacionEscenariosResponseDTO (HU-18) */
+export interface ComparacionEscenarios {
+  loteId: number
+  productoNombre: string
+  cantidad: number
+  diasHastaVencimiento: number
+  escenarioSinDescuento: EscenarioProyectado
+  escenarioConDescuento: EscenarioProyectado
+  recomendacion: 'CON_DESCUENTO' | 'SIN_DESCUENTO'
+  mensaje: string
+}
+
+/** DescuentoAplicadoResponseDTO */
+export interface DescuentoAplicado {
+  loteId: number
+  productoNombre: string
+  precioOriginal: number
+  porcentajeDescuento: number
+  precioConDescuento: number
+  mensaje: string
+}
+
+/** MermaResponseDTO. El costo y la pérdida solo se muestran al dueño. */
+export interface Merma {
+  id: number
+  productoId: number
+  productoNombre: string
+  cantidadMermada: number
+  motivo: string
+  perdidaTotal?: number
+}
+
+/** HistorialAccionResponseDTO (HU-22) */
+export interface HistorialAccion {
+  id: number
+  loteId: number
+  tipoAccion: TipoAccion
+  motivo: string | null
+  usuarioNombre: string
+  usuarioEmail: string
+  fechaHora: string
+}
+
+/** ComercioResponseDTO (solo lo que usa el front) */
+export interface Comercio {
+  id: number
+  nombre: string
+  margenMinimoPorcentaje: number
 }

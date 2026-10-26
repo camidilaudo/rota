@@ -2,7 +2,14 @@ import type { Rol } from '../types/auth'
 import type {
   AlertaRotacion,
   Categoria,
+  ComparacionEscenarios,
+  Comercio,
+  DescuentoAplicado,
+  DescuentoSugerido,
+  HistorialAccion,
   Lote,
+  LoteRiesgo,
+  Merma,
   ModoNotificacion,
   Pagina,
   Producto,
@@ -10,6 +17,7 @@ import type {
   RutaDiaria,
   Ubicacion,
   Usuario,
+  VentaRegistrada,
 } from '../types/domain'
 import { apiRequest } from './client'
 
@@ -67,3 +75,31 @@ export const actualizarConfiguracionCategoria = (id: number, params: { diasUmbra
 // Usuarios (UsuarioController)
 export const crearUsuario = (body: { nombre: string; email: string; password: string; rol: Rol }) =>
   apiRequest<Usuario>('/api/usuarios', { method: 'POST', body })
+
+// Riesgo: todos los lotes con su semáforo y su cobertura por velocidad de venta (HU-15)
+export const getEvaluacionGeneral = (signal?: AbortSignal) => apiRequest<LoteRiesgo[]>('/api/riesgo/evaluacion-general', { signal })
+
+// Operaciones (OperacionStockController)
+export const registrarVenta = (body: { productoId: number; cantidad: number }) =>
+  apiRequest<VentaRegistrada>('/api/operaciones/ventas', { method: 'POST', body }) // HU-20
+
+export const getDescuentoSugerido = (loteId: number, signal?: AbortSignal) =>
+  apiRequest<DescuentoSugerido>(`/api/operaciones/lotes/${loteId}/descuento-sugerido`, { signal }) // HU-17 y HU-19
+
+export const compararEscenarios = (loteId: number, signal?: AbortSignal) =>
+  apiRequest<ComparacionEscenarios>(`/api/operaciones/lotes/${loteId}/comparar-escenarios`, { signal }) // HU-18
+
+export const getHistorialLote = (loteId: number, signal?: AbortSignal) =>
+  apiRequest<HistorialAccion[]>(`/api/operaciones/lotes/${loteId}/historial`, { signal }) // HU-22
+
+export const aplicarDescuento = (body: { loteId: number; porcentajeDescuento: number; motivo?: string }) =>
+  apiRequest<DescuentoAplicado>('/api/operaciones/descuentos', { method: 'POST', body })
+
+export const registrarMerma = (body: { loteId: number; cantidad: number; motivo: string }) =>
+  apiRequest<Merma>('/api/operaciones/mermas', { method: 'POST', body })
+
+// Comercio (ComercioController, solo dueño): piso de margen (HU-19)
+export const getComercio = (id: number, signal?: AbortSignal) => apiRequest<Comercio>(`/api/comercios/${id}`, { signal })
+
+export const actualizarMargenMinimo = (id: number, margenMinimoPorcentaje: number) =>
+  apiRequest<Comercio>(`/api/comercios/${id}/margen-minimo`, { method: 'PATCH', body: { margenMinimoPorcentaje } })

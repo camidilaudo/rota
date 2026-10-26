@@ -46,6 +46,8 @@ public class MotorRiesgoServiceImpl implements MotorRiesgoService {
 
         // Filtramos solo los lotes que requieren acción inmediata (Rojo o Crítico/Vencido)
         List<LoteRiesgoResponseDTO> priorizados = todos.stream()
+                // Un lote sin stock (por ejemplo, agotado por ventas) ya no requiere ninguna acción
+                .filter(l -> l.getCantidad() != null && l.getCantidad() > 0)
                 .filter(l -> l.getEstadoRiesgo() == EstadoRiesgo.ROJO || l.getEstadoRiesgo() == EstadoRiesgo.CRITICO_VENCIDO)
                 .sorted(Comparator.comparing(LoteRiesgoResponseDTO::getUbicacion, Comparator.nullsLast(Comparator.naturalOrder()))
                         .thenComparing(LoteRiesgoResponseDTO::getFechaVencimiento, Comparator.nullsLast(Comparator.naturalOrder())))
