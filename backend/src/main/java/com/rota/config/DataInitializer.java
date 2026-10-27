@@ -61,14 +61,14 @@ public class DataInitializer implements CommandLineRunner {
                 .comercio(comercio)
                 .build());
 
-        // 3. Categorías del comercio (Lácteos queda como categoría piloto)
+        // 3. Categorías del comercio
         Categoria lacteos = categoriaRepository.save(Categoria.builder()
                 .nombre("Lácteos")
                 .diasUmbralAlerta(7)
                 .diasUmbralCritico(3) // <-- ¡Agregado!
                 .modoNotificacion(ModoNotificacion.DIARIO)
                 .activa(true)
-                .esPiloto(true)
+                .esPiloto(false)
                 .comercio(comercio)
                 .build());
                 
@@ -94,7 +94,7 @@ public class DataInitializer implements CommandLineRunner {
 
         // 4. Productos
         Producto leche = productoRepository.save(Producto.builder()
-                .codigoBarra("7790001000011")
+                .codigoBarra("7790001000019")
                 .nombre("Leche Entera 1L")
                 .costo(new BigDecimal("850.00"))
                 .precioVenta(new BigDecimal("1200.00"))
@@ -102,7 +102,7 @@ public class DataInitializer implements CommandLineRunner {
                 .build());
 
         Producto yogur = productoRepository.save(Producto.builder()
-                .codigoBarra("7790001000028")
+                .codigoBarra("7790001000026")
                 .nombre("Yogur Frutilla 500g")
                 .costo(new BigDecimal("600.00"))
                 .precioVenta(new BigDecimal("950.00"))
@@ -118,7 +118,7 @@ public class DataInitializer implements CommandLineRunner {
                 .build());
 
         Producto quesoCremoso = productoRepository.save(Producto.builder()
-                .codigoBarra("7790002000020")
+                .codigoBarra("7790002000025")
                 .nombre("Queso Cremoso 1kg")
                 .costo(new BigDecimal("3500.00"))
                 .precioVenta(new BigDecimal("5200.00"))
@@ -171,7 +171,7 @@ public class DataInitializer implements CommandLineRunner {
         loteRepository.saveAll(List.of(loteCrítico1, loteAlerta1, loteAlerta2, loteOk1, loteOk2));
 
         log.info("¡Datos semilla cargados exitosamente!");
-        log.info("Comercio cargado -> {} (categoría piloto: {})", comercio.getNombre(), lacteos.getNombre());
+        log.info("Comercio cargado -> {}", comercio.getNombre());
         log.info("Credenciales cargadas -> Dueño: {} / 123456", dueno.getEmail());
         log.info("Credenciales cargadas -> Repositor: {} / 123456", repositor.getEmail());
     }

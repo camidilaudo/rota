@@ -1,66 +1,45 @@
 {
-  "descripcion": "Datos de demostración del MVP (provisorios hasta tener los de Mati y Paolo). Se cargan por la API: ver scripts/cargar-datos-demo.mjs.",
-  "lineaBaseMermaMensual": 150000,
+  "descripcion": "Datos de prueba de la demo del MVP (Almacén Don Carlos). Completan la semilla de DataInitializer: ventas de los últimos 14 días, bajas del mes y la manteca. La línea base de merma ($ 60.000) se carga en vivo desde Configuración (HU-26).",
   "productos": [
     {
-      "codigoBarra": "7799999000018",
-      "nombre": "Yogur Bebible Vainilla 1L",
+      "codigoBarra": "7790001000019",
+      "nombre": "Leche Entera 1L",
+      "existente": true,
+      "ventasUltimos14Dias": 84,
+      "bajas": [
+        { "cantidad": 10, "causa": "VENCIMIENTO", "motivo": "Vencida en la góndola" },
+        { "cantidad": 2, "causa": "ROTURA", "motivo": "Sachet roto en el depósito" }
+      ]
+    },
+    {
+      "codigoBarra": "7790001000026",
+      "nombre": "Yogur Frutilla 500g",
+      "existente": true,
+      "ventasUltimos14Dias": 14,
+      "bajas": [{ "cantidad": 6, "causa": "VENCIMIENTO", "motivo": "Vencido en el depósito" }]
+    },
+    {
+      "codigoBarra": "7790002000018",
+      "nombre": "Pan Lactal Blanco 500g",
+      "existente": true,
+      "ventasUltimos14Dias": 42,
+      "bajas": [{ "cantidad": 8, "causa": "VENCIMIENTO", "motivo": "Vencido en la góndola" }]
+    },
+    {
+      "codigoBarra": "7790002000025",
+      "nombre": "Queso Cremoso 1kg",
+      "existente": true,
+      "ventasUltimos14Dias": 2,
+      "bajas": [{ "cantidad": 2, "causa": "DANIO", "motivo": "Cadena de frío cortada" }]
+    },
+    {
+      "codigoBarra": "7790001000033",
+      "nombre": "Manteca 200g",
       "categoria": "Lácteos",
       "precioVenta": 2100,
       "costo": 1400,
-      "ventasUltimos14Dias": 21,
-      "lotes": [
-        { "cantidad": 12, "venceEnDias": 2, "ubicacion": "GONDOLA" },
-        { "cantidad": 24, "venceEnDias": 20, "ubicacion": "DEPOSITO" }
-      ]
-    },
-    {
-      "codigoBarra": "7799999000025",
-      "nombre": "Queso Untable 300g",
-      "categoria": "Lácteos",
-      "precioVenta": 2800,
-      "costo": 1900,
-      "ventasUltimos14Dias": 28,
-      "lotes": [
-        { "cantidad": 6, "venceEnDias": 1, "ubicacion": "GONDOLA" },
-        { "cantidad": 18, "venceEnDias": 25, "ubicacion": "DEPOSITO" }
-      ],
-      "bajas": [{ "lote": 1, "cantidad": 1, "causa": "ROTURA", "motivo": "Envase roto en el depósito" }]
-    },
-    {
-      "codigoBarra": "7799999000032",
-      "nombre": "Medialunas x6",
-      "categoria": "Panadería",
-      "precioVenta": 3500,
-      "costo": 2000,
-      "ventasUltimos14Dias": 42,
-      "lotes": [
-        { "cantidad": 10, "venceEnDias": 1, "ubicacion": "GONDOLA" },
-        { "cantidad": 8, "venceEnDias": 3, "ubicacion": "DEPOSITO" }
-      ],
-      "bajas": [{ "lote": 0, "cantidad": 2, "causa": "VENCIMIENTO", "motivo": "Retiradas al cierre" }]
-    },
-    {
-      "codigoBarra": "7799999000049",
-      "nombre": "Jamón Cocido 200g",
-      "categoria": "Fiambres y Embutidos",
-      "precioVenta": 4200,
-      "costo": 2900,
-      "ventasUltimos14Dias": 14,
-      "lotes": [{ "cantidad": 15, "venceEnDias": 4, "ubicacion": "GONDOLA" }],
-      "bajas": [{ "lote": 0, "cantidad": 2, "causa": "DANIO", "motivo": "Cadena de frío cortada" }]
-    },
-    {
-      "codigoBarra": "7799999000056",
-      "nombre": "Leche Descremada 1L",
-      "categoria": "Lácteos",
-      "precioVenta": 1300,
-      "costo": 900,
-      "ventasUltimos14Dias": 70,
-      "lotes": [
-        { "cantidad": 20, "venceEnDias": 10, "ubicacion": "GONDOLA" },
-        { "cantidad": 40, "venceEnDias": 30, "ubicacion": "DEPOSITO" }
-      ]
+      "ventasUltimos14Dias": 7,
+      "lotes": [{ "cantidad": 4, "venceEnDias": 0, "ubicacion": "GONDOLA" }]
     }
   ]
 }

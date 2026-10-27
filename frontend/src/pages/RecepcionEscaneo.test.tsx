@@ -24,7 +24,7 @@ vi.mock('@zxing/browser', () => ({
 
 const leche: Producto = {
   id: 1,
-  codigoBarra: '7790001000011',
+  codigoBarra: '7790001000019',
   nombre: 'Leche Entera 1L',
   precioVenta: 1200,
   categoriaId: 1,
@@ -57,12 +57,12 @@ async function abrirCamara() {
 
 describe('Recepción con escaneo (HU-27)', () => {
   it('lee el código, identifica el producto y sigue con la carga del lote', async () => {
-    const fetchMock = mockApi({ 'GET /api/productos/codigo/7790001000011': () => jsonResponse(leche) })
+    const fetchMock = mockApi({ 'GET /api/productos/codigo/7790001000019': () => jsonResponse(leche) })
     renderApp('/recepcion', 'ROLE_REPOSITOR')
     await abrirCamara()
     expect(screen.getByRole('dialog', { name: 'Escanear código de barras' })).toBeInTheDocument()
 
-    leer('7790001000011')
+    leer('7790001000019')
 
     expect(await screen.findByText('Leche Entera 1L')).toBeInTheDocument()
     expect(screen.getByLabelText('Vence el')).toBeInTheDocument()
@@ -72,15 +72,15 @@ describe('Recepción con escaneo (HU-27)', () => {
   })
 
   it('ignora lecturas repetidas del mismo escaneo', async () => {
-    const fetchMock = mockApi({ 'GET /api/productos/codigo/7790001000011': () => jsonResponse(leche) })
+    const fetchMock = mockApi({ 'GET /api/productos/codigo/7790001000019': () => jsonResponse(leche) })
     renderApp('/recepcion', 'ROLE_REPOSITOR')
     await abrirCamara()
     const callback = zx.callback!
 
     act(() => {
-      callback({ getText: () => '7790001000011' }, undefined, { stop: zx.stop })
-      callback({ getText: () => '7790001000011' }, undefined, { stop: zx.stop })
-      callback({ getText: () => '7790001000011' }, undefined, { stop: zx.stop })
+      callback({ getText: () => '7790001000019' }, undefined, { stop: zx.stop })
+      callback({ getText: () => '7790001000019' }, undefined, { stop: zx.stop })
+      callback({ getText: () => '7790001000019' }, undefined, { stop: zx.stop })
     })
 
     await screen.findByText('Leche Entera 1L')
@@ -99,7 +99,7 @@ describe('Recepción con escaneo (HU-27)', () => {
 
   it('sin permiso de cámara avisa y se puede seguir tipeando', async () => {
     zx.error = new DOMException('Permission denied', 'NotAllowedError')
-    mockApi({ 'GET /api/productos/codigo/7790001000011': () => jsonResponse(leche) })
+    mockApi({ 'GET /api/productos/codigo/7790001000019': () => jsonResponse(leche) })
     renderApp('/recepcion', 'ROLE_REPOSITOR')
     const user = await abrirCamara()
 
@@ -107,7 +107,7 @@ describe('Recepción con escaneo (HU-27)', () => {
     await user.click(screen.getByRole('button', { name: 'Tipear el código' }))
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
 
-    await user.type(screen.getByLabelText('Código de barras'), '7790001000011{Enter}')
+    await user.type(screen.getByLabelText('Código de barras'), '7790001000019{Enter}')
     expect(await screen.findByText('Leche Entera 1L')).toBeInTheDocument()
   })
 
@@ -135,26 +135,26 @@ describe('Recepción con escaneo (HU-27)', () => {
 
 describe('Medición del escaneo (NF-02)', () => {
   it('registra los dos tiempos de cada identificación', async () => {
-    mockApi({ 'GET /api/productos/codigo/7790001000011': () => jsonResponse(leche) })
+    mockApi({ 'GET /api/productos/codigo/7790001000019': () => jsonResponse(leche) })
     renderApp('/recepcion', 'ROLE_REPOSITOR')
     await abrirCamara()
 
-    leer('7790001000011')
+    leer('7790001000019')
     await screen.findByText('Leche Entera 1L')
 
     const [m] = leerMediciones()
-    expect(m.codigo).toBe('7790001000011')
+    expect(m.codigo).toBe('7790001000019')
     expect(m.resultado).toBe('encontrado')
     expect(m.lecturaAIdentificacionMs).toBeGreaterThanOrEqual(0)
     expect(m.aperturaAIdentificacionMs).toBeGreaterThanOrEqual(m.lecturaAIdentificacionMs)
   })
 
   it('el código tipeado no se mide', async () => {
-    mockApi({ 'GET /api/productos/codigo/7790001000011': () => jsonResponse(leche) })
+    mockApi({ 'GET /api/productos/codigo/7790001000019': () => jsonResponse(leche) })
     const user = userEvent.setup()
     renderApp('/recepcion', 'ROLE_REPOSITOR')
 
-    await user.type(screen.getByLabelText('Código de barras'), '7790001000011{Enter}')
+    await user.type(screen.getByLabelText('Código de barras'), '7790001000019{Enter}')
     await screen.findByText('Leche Entera 1L')
 
     expect(leerMediciones()).toEqual([])

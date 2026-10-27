@@ -3,7 +3,7 @@ import { medicionesComoCsv, resumenMediciones, type MedicionEscaneo } from './me
 
 const m = (resultado: MedicionEscaneo['resultado'], lectura: number, apertura: number): MedicionEscaneo => ({
   fecha: '2026-10-27T20:00:00.000Z',
-  codigo: '7790001000011',
+  codigo: '7790001000019',
   resultado,
   lecturaAIdentificacionMs: lectura,
   aperturaAIdentificacionMs: apertura,
@@ -31,7 +31,7 @@ describe('resumen NF-02', () => {
   it('exporta CSV con una fila por medición', () => {
     expect(medicionesComoCsv([m('encontrado', 123.4, 2500.6)]).split('\n')).toEqual([
       'fecha,codigo,resultado,lectura_a_identificacion_ms,apertura_a_identificacion_ms',
-      '2026-10-27T20:00:00.000Z,7790001000011,encontrado,123,2501',
+      '2026-10-27T20:00:00.000Z,7790001000019,encontrado,123,2501',
     ])
   })
 })

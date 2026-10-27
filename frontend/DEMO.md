@@ -1,21 +1,21 @@
 # Demo del MVP de Rotá (28/10)
 
-Recorrido en vivo: **Recepción → Ruta del día → Venta → Descuento → Baja → Panel de merma**, con el backend real, en una sola PC (localhost) y, si se quiere mostrar el escaneo, un celular en el mismo wifi.
+Recorrido en vivo en 9 pasos: **Recepción con escaneo → Alerta FEFO y traslado → Ruta del día → Descuentos → Piso de margen y escenarios → Baja → Revisión → Panel de merma → Línea base**, con el backend real, en una sola PC (localhost) y un celular en el mismo wifi para el escaneo.
 
-Duración estimada: 5 a 6 minutos.
+Duración estimada: 8 a 10 minutos. Los datos son los datos de prueba del equipo (Almacén Don Carlos) y con ellos se miden las metas del MVP.
 
 ## 1. Usuarios y roles
 
 | Usuario | Contraseña | Rol | Qué hace en la demo |
 | --- | --- | --- | --- |
-| `repositor@comercio.com` | `123456` | Encargado (Juan Repositor) | Recepción con escaneo, Ruta del día, marcar revisado, Venta |
-| `dueno@comercio.com` | `123456` | Dueño (Carlos Dueño) | Valor en riesgo, Descuento, Baja, Panel de merma |
+| `repositor@comercio.com` | `123456` | Encargado (Juan Repositor) | Recepción con escaneo, traslado, Ruta del día, marcar revisado |
+| `dueno@comercio.com` | `123456` | Dueño (Carlos Dueño) | Valor en riesgo, descuentos, escenarios, baja, panel de merma, línea base |
 
 El encargado nunca ve costos, márgenes ni valor en riesgo, y no tiene las pestañas Merma ni Configuración.
 
 ## 2. Levantar todo desde cero
 
-Hace falta Docker Desktop, JDK 17 o superior y Node.js 20 o superior. Maven no hace falta: el backend trae el wrapper (`mvnw.cmd` en Windows). Abrí tres PowerShell en la raíz del repo.
+Hace falta Docker Desktop, **JDK 21** y Node.js 20 o superior. Con JDK 25 o 26, Lombok falla al compilar (`cannot find symbol`): si tenés más de un JDK, apuntá `JAVA_HOME` al 21 antes de arrancar el backend. Maven no hace falta: el backend trae el wrapper (`mvnw.cmd` en Windows). Abrí tres PowerShell en la raíz del repo.
 
 **Terminal 1: base de datos**
 
@@ -46,11 +46,17 @@ Abrí la dirección que muestra Vite (`https://localhost:5173`). El navegador av
 
 ## 3. Datos previos
 
-### 3.1 Datos base (automáticos)
+### 3.1 Semilla (automática)
 
-`DataInitializer` crea el comercio "Almacén Don Carlos", los dos usuarios, 3 categorías (Lácteos, Panadería, Fiambres y Embutidos), 4 productos y 5 lotes. Las fechas se calculan **desde el día en que arranca el backend con la base vacía**: por eso hay que restablecer el entorno el mismo día de la demo (sección 7).
+Con la base vacía, `DataInitializer` crea el comercio "Almacén Don Carlos" (piso de margen 20%), los dos usuarios, 3 categorías y 4 productos con 5 lotes. Las fechas se calculan **desde el día en que arranca el backend con la base vacía**: por eso hay que restablecer el entorno el mismo día de la demo (sección 7).
 
-### 3.2 Datos de demo (un comando)
+| Categoría | Umbral de alerta | Umbral crítico |
+| --- | --- | --- |
+| Lácteos | 7 días | 3 días |
+| Panadería | 3 días | 1 día |
+| Fiambres y Embutidos | 10 días | 5 días |
+
+### 3.2 Datos de prueba (un comando)
 
 Con el backend corriendo, en otra terminal:
 
@@ -59,76 +65,109 @@ cd frontend
 npm run demo:datos
 ```
 
-Carga por la API, con las mismas reglas que la app:
+Completa la semilla por la API, con las mismas reglas que la app: las ventas de los últimos 14 días (sin esto la velocidad de venta de HU-15 da cero), las bajas del mes y la manteca. Se corre una sola vez por base: si ya hay bajas registradas, no carga nada. Si algo falla a mitad de camino, restablecé el entorno y volvé a correrlo.
 
-| Producto | Código (EAN-13) | Lotes | Historial |
+| Producto | Código (EAN-13) | Costo | Precio | Ventas en 14 días | Lotes al empezar |
+| --- | --- | --- | --- | --- | --- |
+| Leche Entera 1L | 7790001000019 | 850 | 1.200 | 84 (6 por día) | 25 u. en góndola (vence mañana) y 50 u. en depósito (25 días) |
+| Yogur Frutilla 500g | 7790001000026 | 600 | 950 | 14 (1 por día) | 15 u. en depósito (5 días) |
+| Pan Lactal Blanco 500g | 7790002000018 | 1.100 | 1.800 | 42 (3 por día) | 10 u. en góndola (2 días) |
+| Queso Cremoso 1kg | 7790002000025 | 3.500 | 5.200 | 2 | 8 u. en góndola (40 días) |
+| Manteca 200g | 7790001000033 | 1.400 | 2.100 | 7 | 4 u. en góndola (vence hoy) |
+
+Bajas del mes que carga el comando:
+
+| Producto | Unidades | Causa | Pérdida a costo |
 | --- | --- | --- | --- |
-| Yogur Bebible Vainilla 1L | 7799999000018 | 12 u. en góndola (vence en 2 días), 24 u. en depósito (20 días) | 21 ventas |
-| Queso Untable 300g | 7799999000025 | 6 u. en góndola (1 día), 18 u. en depósito (25 días) | 28 ventas, 1 baja por rotura |
-| Medialunas x6 | 7799999000032 | 10 u. en góndola (1 día), 8 u. en depósito (3 días) | 42 ventas, 2 bajas por vencimiento |
-| Jamón Cocido 200g | 7799999000049 | 15 u. en góndola (4 días) | 14 ventas, 2 bajas por daño |
-| Leche Descremada 1L | 7799999000056 | 20 u. en góndola (10 días), 40 u. en depósito (30 días) | 70 ventas |
+| Leche Entera 1L | 10 | Vencimiento | $ 8.500 |
+| Yogur Frutilla 500g | 6 | Vencimiento | $ 3.600 |
+| Pan Lactal Blanco 500g | 8 | Vencimiento | $ 8.800 |
+| Queso Cremoso 1kg | 2 | Daño | $ 7.000 |
+| Leche Entera 1L | 2 | Rotura | $ 1.700 |
+| **Total** | | | **$ 29.600** |
 
-También carga la **línea base de merma mensual** ($ 150.000) si todavía no estaba cargada.
-
-Es seguro correrlo más de una vez: si un código ya existe, saltea ese producto entero, no borra nada y no pisa la línea base si ya tiene valor. Cuando Mati y Paolo compartan sus datos, se pueden poner en `frontend/scripts/datos-demo.json` (mismo formato) o pasar otro archivo: `npm run demo:datos -- --archivo ruta\a\datos.json`.
-
-Las ventas del historial se registran por la API en el momento de la carga (en un lote auxiliar que queda en 0 y no aparece en ninguna lista), así la velocidad de venta de los últimos 14 días es real.
+Las ventas y las bajas se registran sobre lotes auxiliares que vencen hoy y quedan en 0: no descuentan de los lotes de la tabla y no aparecen en la ruta. La línea base de merma **no** se carga acá: se carga en vivo en el paso 9.
 
 ### 3.3 Códigos para escanear
 
-En `frontend/docs/demo/codigos/` están los códigos EAN-13 de la tabla, más uno que no existe (`7799999000063`) para mostrar la carga manual. Abrilos en la PC (o impresos) y escanealos con el celular.
-
-> Los códigos de los 4 productos de `DataInitializer` (excepto el Pan, `7790002000018`) no son EAN-13 válidos: el dígito verificador no cierra, así que un EAN-13 impreso con esos números no se puede leer. Para escanear, usá los de la carpeta.
+En `frontend/docs/demo/codigos/` están los EAN-13 de los 5 productos, más uno que no existe (`7799999000063`) para mostrar qué pasa con un producto no cargado. Abrilos en la PC con brillo alto o imprimilos.
 
 ## 4. Guion paso a paso
 
-Antes de empezar: entorno restablecido (sección 7), `npm run demo:datos` corrido y sesión cerrada en el navegador.
+Antes de empezar: entorno restablecido (sección 7), `npm run demo:datos` corrido, sesión cerrada en el navegador y un cronómetro a mano (las metas se miden en vivo).
 
-### Paso 1. Recepción con escaneo (encargado, 1 min)
+### Paso 1. Recepción con escaneo (encargado; HU-06, HU-07, HU-08 y HU-27)
 
-1. Entrar con `repositor@comercio.com` / `123456`.
-2. Pestaña **Recibir**, botón **Escanear con la cámara**. La primera vez el celular pide permiso: aceptar.
-3. Apuntar a `yogur-bebible-7799999000018.png`.
-4. **Se espera:** la cámara se cierra sola y aparece **Yogur Bebible Vainilla 1L · Lácteos · 7799999000018** con el foco en "Vence el".
-5. Cargar vencimiento dentro de 15 días, cantidad `12`, ubicación **Depósito** y **Registrar lote**.
-6. **Se espera:** "Lote registrado" con "12 unidades · vence el dd/mm/aaaa · Depósito".
-7. Opcional: **Recibir otro lote**, escanear `codigo-no-cargado-7799999000063.png`: el encargado ve que solo el dueño puede dar de alta productos.
+1. Entrar con `repositor@comercio.com` / `123456` y abrir **Recibir**.
+2. Cargar el remito, cronometrando cada lote (meta: menos de 20 segundos por lote):
 
-Sin celular: tipear `7799999000018` y **Buscar producto** (mismo resultado).
+| Escanear | Vence | Cantidad | Ubicación |
+| --- | --- | --- | --- |
+| `yogur-frutilla-7790001000026.png` | en 30 días | 12 | Góndola |
+| `leche-entera-7790001000019.png` | en 20 días | 30 | Depósito |
+| `pan-lactal-7790002000018.png` | en 4 días | 10 | Góndola |
 
-### Paso 2. Ruta del día y revisión (encargado, 1 min)
+3. **Se espera:** al leer el código la cámara se cierra sola, aparece el producto y el foco pasa a "Vence el". Cada lote termina con "Lote registrado".
+4. Opcional: escanear `codigo-no-cargado-7799999000063.png`: el encargado ve que solo el dueño puede dar de alta productos.
 
-1. Pestaña **Ruta**.
-2. **Se espera:** "A revisar: 9", "Vencidos: 0", lotes agrupados por ubicación con el semáforo con texto ("Rojo"), la velocidad de venta y **ningún monto en pesos**.
-3. En **Queso Untable 300g** (Góndola, vence mañana) tocar **Marcar como revisado**.
-4. **Se espera:** la tarjeta desaparece y "A revisar" baja a 8. Queda guardado quién y cuándo (se ve en el historial del lote, paso 4).
-5. Para mostrar el control de duplicados: con el dueño ya logueado en otra pestaña o dispositivo, que intente revisar el mismo lote: aparece "Este lote ya fue revisado hoy por Juan Repositor a las HH:MM".
+Sin celular: tipear el código y **Buscar producto**.
 
-### Paso 3. Venta (encargado, 40 s)
+### Paso 2. Alerta FEFO y traslado (encargado; HU-10, HU-11 y HU-12)
 
-1. Pestaña **Ventas**. Producto **Medialunas x6**, unidades `3`, **Registrar venta**.
-2. **Se espera:** confirmación de la venta. Se descontó del lote que vence antes (FEFO): el de góndola pasa de 8 a 5 unidades (se ve en **Consulta** buscando "medialunas").
+1. **Se espera:** al cargar el yogur en góndola, el aviso de que hay un lote más viejo del mismo producto en el depósito (15 u., vence en 5 días).
+2. Trasladar ese lote del depósito a la góndola.
+
+### Paso 3. Ruta del día (encargado; HU-13, HU-14 y HU-15)
+
+1. Pestaña **Ruta**. Cronometrar el recorrido (meta: menos de 10 minutos).
+2. **Se espera:** 5 lotes en rojo, con el semáforo con texto, la velocidad de venta y **ningún monto en pesos**:
+   - Leche Entera, 25 u.: vence mañana.
+   - Yogur Frutilla, 15 u.: cubre 15 días de venta y le quedan 5 (riesgo por velocidad).
+   - Pan Lactal, 10 u.: cubre 3,3 días y le quedan 2.
+   - Queso Cremoso, 8 u.: cubre 56 días y le quedan 40 (riesgo con fecha lejana, el caso principal de HU-15).
+   - Manteca, 4 u.: vence hoy.
 3. Cerrar sesión.
 
-### Paso 4. Descuento (dueño, 1 min)
+### Paso 4. Descuentos sugeridos (dueño; HU-17 y HU-22)
 
-1. Entrar con `dueno@comercio.com` / `123456`.
-2. **Se espera** en la Ruta: el **Valor en riesgo** total y por lote, y la pestaña **Merma** y **Config.** en el menú.
-3. En **Yogur Bebible Vainilla 1L** (Góndola, vence en 2 días) tocar **Ver y actuar**.
-4. **Se espera:** velocidad de venta (1,5 u. por día, tarda 8 días y vence en 2), el **descuento recomendado** limitado por el piso de margen del comercio (20%) y la comparación de escenarios con y sin descuento.
-5. **Aplicar descuento al lote**. **Se espera:** "Descuento del 20% aplicado correctamente al lote".
+1. Entrar con `dueno@comercio.com` / `123456`. **Se espera:** el **Valor en riesgo** total y por lote, y las pestañas **Merma** y **Config.**
+2. En la leche, el yogur y el pan: **Ver y actuar**, revisar el descuento sugerido y **Aplicar descuento al lote**.
+3. **Se espera:** cada descuento queda en el historial del lote con tipo, usuario, fecha y motivo.
 
-### Paso 5. Baja (dueño, 40 s)
+### Paso 5. Piso de margen y escenarios (dueño; HU-19 y HU-18)
 
-1. En el mismo lote, sección **Dar de baja unidades**: unidades `2`, causa **Daño**, detalle "Envase golpeado", **Dar de baja**.
-2. **Se espera:** "Listo: se dieron de baja 2 unidades (daño)" y el historial del lote con la baja, el descuento y quién hizo cada cosa.
-3. Para mostrar la revisión del paso 2 en el historial, abrir el lote del Queso Untable desde **Consulta**.
+1. En el queso cremoso, **Ver y actuar**.
+2. **Se espera:** el descuento sugerido queda topeado por el piso de margen del comercio (20%) y la comparación de escenarios muestra, con y sin descuento, unidades vendidas, descartadas y margen resultante.
 
-### Paso 6. Panel de merma (dueño, 1 min)
+### Paso 6. Baja con causa (dueño; HU-23)
+
+1. En la manteca, sección **Dar de baja unidades**: 4 unidades, causa **Vencimiento**, **Dar de baja**.
+2. **Se espera:** "Listo: se dieron de baja 4 unidades (vencimiento)", el stock en 0 y la baja en el historial.
+
+### Paso 7. Marcar como revisado (HU-16)
+
+1. En la ruta, **Marcar como revisado** en un lote. **Se espera:** sale de la lista pendiente del día y queda guardado quién y a qué hora.
+2. Para mostrar el control de duplicados: intentar revisarlo de nuevo desde otra pestaña. **Se espera:** "Este lote ya fue revisado hoy por … a las HH:MM".
+
+### Paso 8. Panel de merma (dueño; HU-25)
 
 1. Pestaña **Merma**.
-2. **Se espera:** pérdida a costo del mes (con los datos de demo y la baja del paso 5: **$ 14.500**), unidades y cantidad de bajas; el reparto **por categoría** y **por causa** (Daño, Vencimiento, Rotura) y **contra la línea base**: "Antes de Rotá" vs "Con Rotá" y el ahorro estimado.
+2. **Se espera** (bajas de los datos de prueba más la manteca del paso 6):
+
+| | Pérdida a costo |
+| --- | --- |
+| **Total del mes** | **$ 35.200** |
+| Lácteos | $ 19.400 |
+| Panadería | $ 8.800 |
+| Fiambres y Embutidos | $ 7.000 |
+| Vencimiento | $ 26.500 |
+| Daño | $ 7.000 |
+| Rotura | $ 1.700 |
+
+### Paso 9. Línea base (dueño; HU-26)
+
+1. **Config.**: cargar la línea base de merma mensual en $ 60.000.
+2. Volver a **Merma**. **Se espera:** la línea base prorrateada a los días del mes que pasaron (el 28/10: 28 de 30 días, $ 56.000) contra la merma real ($ 35.200): ahorro de $ 20.800, un 37% menos. Si la demo es otro día, el prorrateo cambia.
 
 ### Cierre. El encargado no ve costos (20 s)
 
@@ -167,7 +206,7 @@ Cada escaneo hecho desde Recepción se mide y queda guardado en ese dispositivo:
 Para hacer las pruebas en el celular:
 
 1. Con el entorno de la sección 5, en el celular entrar a `https://<ip-de-la-pc>:5173/medicion-escaneo` y tocar **Borrar mediciones**.
-2. Ir a **Recibir** y escanear un producto existente (por ejemplo, el yogur bebible). Cuando aparece el producto, tocar **Cambiar** y repetir. Hacer 10 escaneos, variando el producto.
+2. Ir a **Recibir** y escanear un producto existente (por ejemplo, la leche). Cuando aparece el producto, tocar **Cambiar** y repetir. Hacer 10 escaneos, variando el producto.
 3. Volver a `/medicion-escaneo`: muestra cada medición en ms, el **promedio** y el **máximo** de cada métrica, y si cumple o no NF-02. Solo cuentan las identificaciones exitosas.
 4. **Copiar resultados (CSV)** para pegarlos en el informe.
 
