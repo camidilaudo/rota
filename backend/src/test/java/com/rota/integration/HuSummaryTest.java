@@ -40,7 +40,7 @@ class HuSummaryTest {
         
         // Configuración y Seguridad
         sb.append(" [HU-00] Infraestructura & Ambiente  : Spring Boot 3, Java 17, H2 In-Memory & Maven configurados OK.\n");
-        sb.append(" [HU-01] Negocio y Categoría Piloto   : Local comercial y categoría inicial creados en el sistema.\n");
+        sb.append(" [HU-01] Negocio y Categoría Inicial  : Local comercial y categoría inicial creados en el sistema.\n");
         sb.append(" [HU-05] Seguridad, Usuarios y Roles  : Sesión autenticada (ROLE_DUENO / ROLE_REPOSITOR) con JWT validado.\n");
         
         // Catálogo y Umbrales

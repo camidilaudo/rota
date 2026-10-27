@@ -181,9 +181,6 @@ function Categorias() {
                 <div className="min-w-0">
                   <p className="font-heading text-lg font-semibold [overflow-wrap:anywhere]">
                     {c.nombre}
-                    {c.esPiloto && (
-                      <span className="ml-2 inline-block rounded-full bg-primary/15 px-2 py-0.5 align-middle text-xs font-bold text-primary-strong">Piloto</span>
-                    )}
                   </p>
                   <p className="text-sm text-muted-foreground">
                     Alerta: {dias(c.diasUmbralAlerta)} · Crítico: {dias(c.diasUmbralCritico)}
