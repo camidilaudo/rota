@@ -1,8 +1,9 @@
-import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { Suspense, lazy, useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
 import { ApiError } from '../api/client'
 import { crearProducto, getCategorias, getProductoPorCodigo, registrarLote } from '../api/endpoints'
 import { useAuth } from '../auth/AuthContext'
 import { Button } from '../components/Button'
+import { Icon } from '../components/Icon'
 import { PageHeader } from '../components/PageHeader'
 import { Segmented } from '../components/Segmented'
 import { SelectField } from '../components/SelectField'
@@ -10,7 +11,11 @@ import { InlineAlert } from '../components/States'
 import { TextField } from '../components/TextField'
 import { UBICACION_LABEL, formatDate, formatUnits, todayIso } from '../format'
 import { errorMessage } from '../hooks/useApi'
+import { guardarMedicion } from '../scan/medicionEscaneo'
 import type { Categoria, Lote, Producto, Ubicacion } from '../types/domain'
+
+// La librería de lectura (ZXing) pesa: se descarga recién cuando se abre la cámara
+const BarcodeScanner = lazy(() => import('../components/BarcodeScanner').then((m) => ({ default: m.BarcodeScanner })))
 
 type Paso = 'codigo' | 'nuevo' | 'lote' | 'listo'
 type Errores = Record<string, string>
@@ -36,49 +41,108 @@ function ProductoResumen({ producto, onCambiar }: { producto: Producto; onCambia
   )
 }
 
+interface MedicionEnCurso {
+  instanteApertura: number
+  instanteLectura: number
+}
+
 function PasoCodigo({ onEncontrado, onNoExiste }: { onEncontrado: (p: Producto) => void; onNoExiste: (codigo: string) => void }) {
   const [codigo, setCodigo] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [buscando, setBuscando] = useState(false)
+  const [escaneando, setEscaneando] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
+  const instanteAperturaRef = useRef(0)
 
   useEffect(() => inputRef.current?.focus(), [])
 
-  async function buscar(e: FormEvent) {
+  async function buscarCodigo(limpio: string, medicion?: MedicionEnCurso) {
+    setError(null)
+    setBuscando(true)
+    const registrar = (resultado: 'encontrado' | 'no-existe' | 'error') => {
+      if (!medicion) return
+      // NF-02: la métrica se toma apenas llega la respuesta de identificación
+      const ahora = performance.now()
+      guardarMedicion({
+        fecha: new Date().toISOString(),
+        codigo: limpio,
+        resultado,
+        lecturaAIdentificacionMs: ahora - medicion.instanteLectura,
+        aperturaAIdentificacionMs: ahora - medicion.instanteApertura,
+      })
+    }
+    try {
+      const producto = await getProductoPorCodigo(limpio)
+      registrar('encontrado')
+      onEncontrado(producto)
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 404) {
+        registrar('no-existe')
+        onNoExiste(limpio)
+      } else {
+        registrar('error')
+        setError(errorMessage(err))
+      }
+      setBuscando(false)
+    }
+  }
+
+  function buscar(e: FormEvent) {
     e.preventDefault()
     const limpio = codigo.trim()
     if (!limpio) {
       setError('Ingresá el código de barras.')
       return
     }
+    void buscarCodigo(limpio)
+  }
+
+  function abrirCamara() {
+    instanteAperturaRef.current = performance.now()
     setError(null)
-    setBuscando(true)
-    try {
-      onEncontrado(await getProductoPorCodigo(limpio))
-    } catch (err) {
-      if (err instanceof ApiError && err.status === 404) onNoExiste(limpio)
-      else setError(errorMessage(err))
-      setBuscando(false)
-    }
+    setEscaneando(true)
+  }
+
+  const cerrarCamara = useCallback(() => {
+    setEscaneando(false)
+    inputRef.current?.focus()
+  }, [])
+
+  function alDetectar(leido: string, instanteLectura: number) {
+    setEscaneando(false)
+    if (buscando) return
+    setCodigo(leido)
+    void buscarCodigo(leido, { instanteApertura: instanteAperturaRef.current, instanteLectura })
   }
 
   return (
-    <form noValidate onSubmit={buscar} className="space-y-4">
-      <TextField
-        ref={inputRef}
-        label="Código de barras"
-        name="codigo"
-        inputMode="numeric"
-        autoComplete="off"
-        enterKeyHint="search"
-        value={codigo}
-        onChange={(e) => setCodigo(e.target.value)}
-        error={error ?? undefined}
-      />
-      <Button type="submit" fullWidth loading={buscando}>
-        {buscando ? 'Buscando' : 'Buscar producto'}
-      </Button>
-    </form>
+    <>
+      <form noValidate onSubmit={buscar} className="space-y-4">
+        <Button variant="secondary" fullWidth onClick={abrirCamara} disabled={buscando}>
+          <Icon name="camera" className="h-5 w-5" />
+          Escanear con la cámara
+        </Button>
+        <TextField
+          ref={inputRef}
+          label="Código de barras"
+          name="codigo"
+          inputMode="numeric"
+          autoComplete="off"
+          enterKeyHint="search"
+          value={codigo}
+          onChange={(e) => setCodigo(e.target.value)}
+          error={error ?? undefined}
+        />
+        <Button type="submit" fullWidth loading={buscando}>
+          {buscando ? 'Buscando' : 'Buscar producto'}
+        </Button>
+      </form>
+      {escaneando && (
+        <Suspense fallback={<div role="status" aria-label="Abriendo la cámara" className="fixed inset-0 z-50 bg-black" />}>
+          <BarcodeScanner onDetected={alDetectar} onClose={cerrarCamara} />
+        </Suspense>
+      )}
+    </>
   )
 }
 
