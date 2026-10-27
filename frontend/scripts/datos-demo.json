@@ -1,0 +1,66 @@
+{
+  "descripcion": "Datos de demostración del MVP (provisorios hasta tener los de Mati y Paolo). Se cargan por la API: ver scripts/cargar-datos-demo.mjs.",
+  "lineaBaseMermaMensual": 150000,
+  "productos": [
+    {
+      "codigoBarra": "7799999000018",
+      "nombre": "Yogur Bebible Vainilla 1L",
+      "categoria": "Lácteos",
+      "precioVenta": 2100,
+      "costo": 1400,
+      "ventasUltimos14Dias": 21,
+      "lotes": [
+        { "cantidad": 12, "venceEnDias": 2, "ubicacion": "GONDOLA" },
+        { "cantidad": 24, "venceEnDias": 20, "ubicacion": "DEPOSITO" }
+      ]
+    },
+    {
+      "codigoBarra": "7799999000025",
+      "nombre": "Queso Untable 300g",
+      "categoria": "Lácteos",
+      "precioVenta": 2800,
+      "costo": 1900,
+      "ventasUltimos14Dias": 28,
+      "lotes": [
+        { "cantidad": 6, "venceEnDias": 1, "ubicacion": "GONDOLA" },
+        { "cantidad": 18, "venceEnDias": 25, "ubicacion": "DEPOSITO" }
+      ],
+      "bajas": [{ "lote": 1, "cantidad": 1, "causa": "ROTURA", "motivo": "Envase roto en el depósito" }]
+    },
+    {
+      "codigoBarra": "7799999000032",
+      "nombre": "Medialunas x6",
+      "categoria": "Panadería",
+      "precioVenta": 3500,
+      "costo": 2000,
+      "ventasUltimos14Dias": 42,
+      "lotes": [
+        { "cantidad": 10, "venceEnDias": 1, "ubicacion": "GONDOLA" },
+        { "cantidad": 8, "venceEnDias": 3, "ubicacion": "DEPOSITO" }
+      ],
+      "bajas": [{ "lote": 0, "cantidad": 2, "causa": "VENCIMIENTO", "motivo": "Retiradas al cierre" }]
+    },
+    {
+      "codigoBarra": "7799999000049",
+      "nombre": "Jamón Cocido 200g",
+      "categoria": "Fiambres y Embutidos",
+      "precioVenta": 4200,
+      "costo": 2900,
+      "ventasUltimos14Dias": 14,
+      "lotes": [{ "cantidad": 15, "venceEnDias": 4, "ubicacion": "GONDOLA" }],
+      "bajas": [{ "lote": 0, "cantidad": 2, "causa": "DANIO", "motivo": "Cadena de frío cortada" }]
+    },
+    {
+      "codigoBarra": "7799999000056",
+      "nombre": "Leche Descremada 1L",
+      "categoria": "Lácteos",
+      "precioVenta": 1300,
+      "costo": 900,
+      "ventasUltimos14Dias": 70,
+      "lotes": [
+        { "cantidad": 20, "venceEnDias": 10, "ubicacion": "GONDOLA" },
+        { "cantidad": 40, "venceEnDias": 30, "ubicacion": "DEPOSITO" }
+      ]
+    }
+  ]
+}

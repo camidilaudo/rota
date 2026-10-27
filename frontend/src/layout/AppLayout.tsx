@@ -6,6 +6,7 @@ import { ROL_LABEL, navItemsFor, type NavItem } from '../navigation'
 
 const SHORT_LABEL: Record<string, string> = {
   '/': 'Ruta',
+  '/recepcion': 'Recibir',
   '/configuracion': 'Config.',
 }
 
