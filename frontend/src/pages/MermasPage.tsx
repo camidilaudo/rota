@@ -11,7 +11,9 @@ import type { CausaMerma, ComparacionLineaBase, MermaGrupo } from '../types/doma
 
 function nombreDelMes(mes: string): string {
   const fecha = new Date(`${mes}-01T00:00:00`)
-  return fecha.toLocaleDateString('es-AR', { month: 'long', year: 'numeric' })
+  const texto = fecha.toLocaleDateString('es-AR', { month: 'long', year: 'numeric' })
+  // "octubre de 2026" -> "Octubre de 2026" (con la clase capitalize quedaba "Octubre De 2026")
+  return texto.charAt(0).toUpperCase() + texto.slice(1)
 }
 
 function Stat({ label, value }: { label: string; value: string }) {
@@ -64,9 +66,15 @@ function ComparacionCard({ c }: { c: ComparacionLineaBase }) {
   }
   const mejoro = c.mejoro === true
   const diferencia = c.ahorroPesos ?? 0
+  // El mensaje del backend trae el monto sin formato ("$26400.00"): se arma acá con formato de pesos
+  const titulo = mejoro
+    ? `La merma del período es menor que la línea base: el ahorro estimado es de ${formatMoney(diferencia)}.`
+    : diferencia === 0
+      ? 'La merma del período es igual a la línea base.'
+      : `La merma del período supera la línea base en ${formatMoney(Math.abs(diferencia))}.`
   return (
     <div className={`space-y-3 rounded-2xl border p-4 ${mejoro ? 'border-emerald-300 bg-emerald-50' : 'border-red-200 bg-red-50'}`}>
-      <p className={`font-heading text-lg font-bold ${mejoro ? 'text-emerald-900' : 'text-red-800'}`}>{c.mensaje}</p>
+      <p className={`font-heading text-lg font-bold ${mejoro ? 'text-emerald-900' : 'text-red-800'}`}>{titulo}</p>
       <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
         <div>
           <dt className="text-muted-foreground">Antes de Rotá (período)</dt>
@@ -162,7 +170,7 @@ export function MermasPage() {
                   <ul className="space-y-2">
                     {datos.porMes.map((m) => (
                       <li key={m.mes} className="flex items-baseline justify-between gap-3 rounded-xl border border-border bg-card px-4 py-3">
-                        <p className="font-semibold capitalize">{nombreDelMes(m.mes)}</p>
+                        <p className="font-semibold">{nombreDelMes(m.mes)}</p>
                         <p className="font-bold">{formatMoney(m.perdidaTotal)}</p>
                       </li>
                     ))}

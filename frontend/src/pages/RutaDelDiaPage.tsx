@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { ApiError } from '../api/client'
 import { getRutaDiaria, marcarLoteRevisado } from '../api/endpoints'
 import { useAuth } from '../auth/AuthContext'
 import { Button } from '../components/Button'
@@ -33,6 +34,7 @@ function LoteCard({ lote, showValue, onRevisado }: { lote: LoteRiesgo; showValue
   const vencido = lote.estadoRiesgo === 'CRITICO_VENCIDO'
   const [marcando, setMarcando] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [yaRevisado, setYaRevisado] = useState<string | null>(null)
 
   // HU-16: deja constancia (usuario y hora) y el lote sale de la lista de pendientes del día
   async function marcarRevisado() {
@@ -42,7 +44,9 @@ function LoteCard({ lote, showValue, onRevisado }: { lote: LoteRiesgo; showValue
       await marcarLoteRevisado(lote.loteId)
       onRevisado()
     } catch (err) {
-      setError(errorMessage(err))
+      // 409: otro usuario ya lo revisó hoy; se informa y no se reintenta
+      if (err instanceof ApiError && err.status === 409) setYaRevisado(err.message)
+      else setError(errorMessage(err))
       setMarcando(false)
     }
   }
@@ -93,6 +97,11 @@ function LoteCard({ lote, showValue, onRevisado }: { lote: LoteRiesgo; showValue
           <InlineAlert kind="error">{error}</InlineAlert>
         </div>
       )}
+      {yaRevisado && (
+        <div className="mt-3">
+          <InlineAlert kind="info">{yaRevisado}</InlineAlert>
+        </div>
+      )}
       <div className="mt-3 grid gap-2 sm:grid-cols-2">
         <Link
           to={`/lotes/${lote.loteId}`}
@@ -100,8 +109,8 @@ function LoteCard({ lote, showValue, onRevisado }: { lote: LoteRiesgo; showValue
         >
           Ver y actuar
         </Link>
-        <Button variant="secondary" fullWidth loading={marcando} onClick={marcarRevisado}>
-          {marcando ? 'Guardando' : 'Marcar revisado'}
+        <Button variant="secondary" fullWidth loading={marcando} disabled={yaRevisado !== null} onClick={marcarRevisado}>
+          {marcando ? 'Guardando' : 'Marcar como revisado'}
         </Button>
       </div>
     </li>

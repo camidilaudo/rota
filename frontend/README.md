@@ -52,11 +52,13 @@ El backend no tiene CORS configurado, así que el servidor de Vite reenvía todo
 | Comando | Qué hace |
 | --- | --- |
 | `npm run dev` | Servidor de desarrollo con proxy a la API |
+| `npm run dev:https` | Igual, pero con HTTPS (certificado autofirmado): hace falta para usar la cámara desde el celular (HU-27) |
 | `npm run build` | Chequeo de tipos y build de producción en `dist/` |
 | `npm run preview` | Sirve el build (también con proxy a la API) |
 | `npm run lint` | Lint con oxlint |
 | `npm run test` | Pruebas con Vitest |
 | `npm run test:watch` | Pruebas en modo watch |
+| `npm run demo:datos` | Carga los datos de demostración por la API, sin borrar nada (ver [DEMO.md](./DEMO.md)) |
 
 ## Estructura
 

@@ -1,0 +1,45 @@
+{
+  "descripcion": "Datos de prueba de la demo del MVP (Almacén Don Carlos). Completan la semilla de DataInitializer: ventas de los últimos 14 días, bajas del mes y la manteca. La línea base de merma ($ 60.000) se carga en vivo desde Configuración (HU-26).",
+  "productos": [
+    {
+      "codigoBarra": "7790001000019",
+      "nombre": "Leche Entera 1L",
+      "existente": true,
+      "ventasUltimos14Dias": 84,
+      "bajas": [
+        { "cantidad": 10, "causa": "VENCIMIENTO", "motivo": "Vencida en la góndola" },
+        { "cantidad": 2, "causa": "ROTURA", "motivo": "Sachet roto en el depósito" }
+      ]
+    },
+    {
+      "codigoBarra": "7790001000026",
+      "nombre": "Yogur Frutilla 500g",
+      "existente": true,
+      "ventasUltimos14Dias": 14,
+      "bajas": [{ "cantidad": 6, "causa": "VENCIMIENTO", "motivo": "Vencido en el depósito" }]
+    },
+    {
+      "codigoBarra": "7790002000018",
+      "nombre": "Pan Lactal Blanco 500g",
+      "existente": true,
+      "ventasUltimos14Dias": 42,
+      "bajas": [{ "cantidad": 8, "causa": "VENCIMIENTO", "motivo": "Vencido en la góndola" }]
+    },
+    {
+      "codigoBarra": "7790002000025",
+      "nombre": "Queso Cremoso 1kg",
+      "existente": true,
+      "ventasUltimos14Dias": 2,
+      "bajas": [{ "cantidad": 2, "causa": "DANIO", "motivo": "Cadena de frío cortada" }]
+    },
+    {
+      "codigoBarra": "7790001000033",
+      "nombre": "Manteca 200g",
+      "categoria": "Lácteos",
+      "precioVenta": 2100,
+      "costo": 1400,
+      "ventasUltimos14Dias": 7,
+      "lotes": [{ "cantidad": 4, "venceEnDias": 0, "ubicacion": "GONDOLA" }]
+    }
+  ]
+}

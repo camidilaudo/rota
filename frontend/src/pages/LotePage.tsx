@@ -20,6 +20,7 @@ const ACCION_LABEL: Record<TipoAccion, string> = {
   DESCUENTO: 'Descuento',
   TRASLADO: 'Traslado',
   BAJA: 'Baja',
+  REVISION: 'Revisión',
 }
 
 const CAUSAS_BAJA = Object.entries(CAUSA_MERMA_LABEL) as [CausaMerma, string][]

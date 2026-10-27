@@ -12,6 +12,7 @@ import com.rota.entity.Rol;
 import com.rota.entity.TipoAccion;
 import com.rota.entity.Ubicacion;
 import com.rota.entity.Usuario;
+import com.rota.exception.ConflictException;
 import com.rota.exception.ResourceNotFoundException;
 import com.rota.repository.LoteRepository;
 import com.rota.repository.MermaRepository;
@@ -35,12 +36,15 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -137,7 +141,7 @@ class OperacionStockBajaRevisionTest {
     @Test
     @DisplayName("HU-16: marcar un lote como revisado registra usuario y hora")
     void marcarLoteRevisado() {
-        when(loteRepository.findById(5L)).thenReturn(Optional.of(lote));
+        when(loteRepository.findByIdParaActualizar(5L)).thenReturn(Optional.of(lote));
 
         LoteRevisadoResponseDTO respuesta = service.marcarLoteRevisado(5L);
 
@@ -148,12 +152,44 @@ class OperacionStockBajaRevisionTest {
         assertEquals("Juan", respuesta.getRevisadoPor());
         assertEquals(lote.getRevisadoEn(), respuesta.getRevisadoEn());
         verify(loteRepository).save(lote);
+        verify(historialAccionService).registrarAccion(eq(lote), eq(TipoAccion.REVISION), isNull(), eq(encargado));
     }
 
     @Test
     @DisplayName("HU-16: un lote inexistente no se puede marcar como revisado")
     void marcarLoteInexistente() {
-        when(loteRepository.findById(99L)).thenReturn(Optional.empty());
+        when(loteRepository.findByIdParaActualizar(99L)).thenReturn(Optional.empty());
         assertThrows(ResourceNotFoundException.class, () -> service.marcarLoteRevisado(99L));
+    }
+
+    @Test
+    @DisplayName("HU-16: una segunda revisión el mismo día se rechaza y no pisa la primera")
+    void marcarLoteRevisadoDosVecesElMismoDia() {
+        Usuario otro = Usuario.builder().id(9L).nombre("Ana").email("ana@comercio.com").rol(Rol.ROLE_DUENO).build();
+        LocalDateTime primera = LocalDate.now().atTime(8, 5);
+        lote.setRevisadoEn(primera);
+        lote.setRevisadoPor(otro);
+        when(loteRepository.findByIdParaActualizar(5L)).thenReturn(Optional.of(lote));
+
+        ConflictException ex = assertThrows(ConflictException.class, () -> service.marcarLoteRevisado(5L));
+
+        assertEquals("Este lote ya fue revisado hoy por Ana a las 08:05", ex.getMessage());
+        assertEquals(primera, lote.getRevisadoEn());
+        assertSame(otro, lote.getRevisadoPor());
+        verify(loteRepository, never()).save(any());
+        verify(historialAccionService, never()).registrarAccion(any(), any(), any(), any());
+    }
+
+    @Test
+    @DisplayName("HU-16: un lote revisado otro día se puede volver a revisar")
+    void marcarLoteRevisadoAyerYHoy() {
+        lote.setRevisadoEn(LocalDate.now().minusDays(1).atTime(18, 0));
+        when(loteRepository.findByIdParaActualizar(5L)).thenReturn(Optional.of(lote));
+
+        LoteRevisadoResponseDTO respuesta = service.marcarLoteRevisado(5L);
+
+        assertEquals(LocalDate.now(), respuesta.getRevisadoEn().toLocalDate());
+        assertSame(encargado, lote.getRevisadoPor());
+        verify(historialAccionService).registrarAccion(eq(lote), eq(TipoAccion.REVISION), isNull(), eq(encargado));
     }
 }

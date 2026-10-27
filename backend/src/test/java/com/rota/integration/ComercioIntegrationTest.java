@@ -67,10 +67,10 @@ class ComercioIntegrationTest {
 
     @Test
     @WithMockUser(username = "dueno@comercio.com", authorities = {"ROLE_DUENO"})
-    @DisplayName("HU-01: Dar de alta categoría piloto inicial")
+    @DisplayName("HU-01: Dar de alta la categoría inicial")
     void testAltaCategoriaPiloto() throws Exception {
         CategoriaRequestDTO dto = new CategoriaRequestDTO();
-        dto.setNombre("Lácteos Piloto");
+        dto.setNombre("Lácteos Inicial");
         
         // ¡Agregar el campo obligatorio!
         dto.setDiasUmbralAlerta(7); 
@@ -84,7 +84,7 @@ class ComercioIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.nombre").value("Lácteos Piloto"));
+                .andExpect(jsonPath("$.nombre").value("Lácteos Inicial"));
     }
 
     @Test
@@ -158,7 +158,7 @@ class ComercioIntegrationTest {
     }
 
     @Test
-    @DisplayName("HU-01: Crear comercio con categoría piloto activa y dueño asociado que puede ingresar al sistema")
+    @DisplayName("HU-01: Crear comercio con categoría inicial activa y dueño asociado que puede ingresar al sistema")
     void testAltaComercioConCategoriaPiloto() throws Exception {
         String sufijo = String.valueOf(System.nanoTime());
         String emailDueno = "dueno.hu01." + sufijo + "@comercio.com";
@@ -183,7 +183,7 @@ class ComercioIntegrationTest {
         dto.setDireccion("Calle Falsa 123");
         dto.setCategoriasPilotoIds(List.of(categoria.getId()));
 
-        // 1) Se crea el comercio y 2) se selecciona la categoría piloto
+        // 1) Se crea el comercio y 2) se selecciona la categoría inicial
         String respuesta = mockMvc.perform(post("/api/comercios")
                 .with(user(emailDueno).roles("DUENO"))
                 .contentType(MediaType.APPLICATION_JSON)
@@ -251,10 +251,10 @@ class ComercioIntegrationTest {
 
     @Test
     @WithMockUser(username = "dueno@comercio.com", authorities = {"ROLE_DUENO"})
-    @DisplayName("FALLO HU-01: Crear comercio sin seleccionar categoría piloto")
+    @DisplayName("FALLO HU-01: Crear comercio sin seleccionar una categoría")
     void testCrearComercio_SinCategoriaPiloto() throws Exception {
         ComercioRequestDTO dto = new ComercioRequestDTO();
-        dto.setNombre("Comercio Sin Piloto");
+        dto.setNombre("Comercio Sin Categoría");
         dto.setCategoriasPilotoIds(List.of());
 
         mockMvc.perform(post("/api/comercios")

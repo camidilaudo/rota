@@ -55,6 +55,7 @@ describe('Panel de merma (HU-25 y HU-26)', () => {
     expect(within(porCausa).getByText('Vencimiento')).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Por mes' })).toBeInTheDocument()
     expect(await screen.findByText(/el ahorro estimado es de/)).toBeInTheDocument()
+    expect(screen.getByText(/el ahorro estimado es de \$\s2\.000,00\./)).toBeInTheDocument()
   })
 
   it('avisa si todavía no hay línea base y enlaza a Configuración', async () => {
