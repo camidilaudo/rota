@@ -13,6 +13,7 @@ export interface NavItem {
 
 export const NAV_ITEMS: readonly NavItem[] = [
   { path: '/', label: 'Ruta del día', icon: 'route', roles: TODOS_LOS_ROLES },
+  { path: '/ventas', label: 'Ventas', icon: 'cart', roles: TODOS_LOS_ROLES },
   { path: '/recepcion', label: 'Recepción', icon: 'package', roles: TODOS_LOS_ROLES },
   { path: '/reponer', label: 'Reponer', icon: 'swap', roles: TODOS_LOS_ROLES },
   { path: '/consulta', label: 'Consulta', icon: 'search', roles: TODOS_LOS_ROLES },

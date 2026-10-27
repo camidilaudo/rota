@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { getRutaDiaria } from '../api/endpoints'
 import { useAuth } from '../auth/AuthContext'
 import { PageHeader } from '../components/PageHeader'
@@ -52,6 +53,16 @@ function LoteCard({ lote, showValue }: { lote: LoteRiesgo; showValue: boolean })
           <dt className="text-muted-foreground">Cantidad</dt>
           <dd className="font-semibold">{formatUnits(lote.cantidad)}</dd>
         </div>
+        {lote.riesgoPorVelocidad && (
+          <div className="col-span-2">
+            <dt className="text-muted-foreground">Velocidad de venta</dt>
+            <dd className="font-semibold text-red-700">
+              {lote.diasCobertura != null
+                ? `A este ritmo tarda ${formatNumber(lote.diasCobertura)} días en venderse`
+                : 'Sin ventas registradas: no se sabe cuándo se agota'}
+            </dd>
+          </div>
+        )}
         {showValue && lote.valorEnRiesgo != null && (
           <div className="col-span-2">
             <dt className="text-muted-foreground">Valor en riesgo</dt>
@@ -59,6 +70,12 @@ function LoteCard({ lote, showValue }: { lote: LoteRiesgo; showValue: boolean })
           </div>
         )}
       </dl>
+      <Link
+        to={`/lotes/${lote.loteId}`}
+        className="mt-3 inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-border-strong bg-card px-4 text-base font-bold text-foreground transition-colors hover:bg-muted"
+      >
+        Ver y actuar
+      </Link>
     </li>
   )
 }

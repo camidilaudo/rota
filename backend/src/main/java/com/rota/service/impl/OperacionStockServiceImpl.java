@@ -365,9 +365,14 @@ public class OperacionStockServiceImpl implements OperacionStockService {
         if (precioVenta.compareTo(precioMinimoPermitido) <= 0) {
             return BigDecimal.ZERO;
         }
-        return BigDecimal.ONE.subtract(precioMinimoPermitido.divide(precioVenta, 4, RoundingMode.HALF_UP))
+        // Este valor es un TOPE: redondear hacia arriba (HALF_UP) podía devolver, por ej., 26.67%
+        // cuando el límite real era 26.666...%, y aplicar ese 26.67% perforaba el piso por centavos.
+        // CEILING en el cociente + FLOOR en el resultado final garantizan que el % devuelto nunca
+        // supere el límite real, así siempre es seguro aplicarlo tal cual.
+        BigDecimal ratio = precioMinimoPermitido.divide(precioVenta, 6, RoundingMode.CEILING);
+        return BigDecimal.ONE.subtract(ratio)
                 .multiply(BigDecimal.valueOf(100))
-                .setScale(2, RoundingMode.HALF_UP);
+                .setScale(2, RoundingMode.FLOOR);
     }
 
     // HU-17: supone elasticidad simple 1:1 (cada 1% de descuento incrementa ~1% la velocidad de venta)

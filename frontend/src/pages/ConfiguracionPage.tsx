@@ -1,7 +1,9 @@
 import { useState, type FormEvent } from 'react'
 import { ApiError } from '../api/client'
+import { useAuth } from '../auth/AuthContext'
 import { actualizarConfiguracionCategoria, crearCategoria, crearUsuario, getCategorias } from '../api/endpoints'
 import { Button } from '../components/Button'
+import { MargenMinimoCard } from '../components/MargenMinimoCard'
 import { PageHeader } from '../components/PageHeader'
 import { Segmented } from '../components/Segmented'
 import { SelectField } from '../components/SelectField'
@@ -312,10 +314,16 @@ function AltaUsuario() {
 }
 
 export function ConfiguracionPage() {
+  const { session } = useAuth()
   return (
     <div className="space-y-10">
-      <PageHeader title="Configuración" description="Categorías y usuarios del comercio." />
+      <PageHeader title="Configuración" description="Categorías, piso de margen y usuarios del comercio." />
       <Categorias />
+      {session?.comercioId != null ? (
+        <MargenMinimoCard comercioId={session.comercioId} />
+      ) : (
+        <InlineAlert kind="info">No pudimos identificar tu comercio para mostrar el piso de margen. Cerrá sesión y volvé a entrar.</InlineAlert>
+      )}
       <AltaUsuario />
     </div>
   )

@@ -1,6 +1,6 @@
 import type { ReactElement, SVGProps } from 'react'
 
-export type IconName = 'route' | 'package' | 'swap' | 'search' | 'settings' | 'logout' | 'eye' | 'eye-off' | 'alert' | 'lock'
+export type IconName = 'route' | 'package' | 'swap' | 'search' | 'settings' | 'logout' | 'eye' | 'eye-off' | 'alert' | 'lock' | 'cart'
 
 const PATHS: Record<IconName, ReactElement> = {
   route: (
@@ -66,6 +66,13 @@ const PATHS: Record<IconName, ReactElement> = {
       <circle cx="12" cy="12" r="9" />
       <path d="M12 8v4.5" />
       <path d="M12 16h.01" />
+    </>
+  ),
+  cart: (
+    <>
+      <circle cx="9" cy="20" r="1.5" />
+      <circle cx="18" cy="20" r="1.5" />
+      <path d="M3 4h2.5l2.2 11h10.6L20 8H6.5" />
     </>
   ),
   lock: (

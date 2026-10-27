@@ -33,11 +33,11 @@ describe('rutas protegidas', () => {
 describe('menú según rol', () => {
   it('el repositor no ve Configuración', () => {
     renderApp('/', 'ROLE_REPOSITOR')
-    expect(navLabels()).toEqual(['Ruta del día', 'Recepción', 'Reponer', 'Consulta'])
+    expect(navLabels()).toEqual(['Ruta del día', 'Ventas', 'Recepción', 'Reponer', 'Consulta'])
   })
 
   it('el dueño ve Configuración', () => {
     renderApp('/', 'ROLE_DUENO')
-    expect(navLabels()).toEqual(['Ruta del día', 'Recepción', 'Reponer', 'Consulta', 'Configuración'])
+    expect(navLabels()).toEqual(['Ruta del día', 'Ventas', 'Recepción', 'Reponer', 'Consulta', 'Configuración'])
   })
 })
