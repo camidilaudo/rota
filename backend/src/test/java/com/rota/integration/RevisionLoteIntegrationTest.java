@@ -67,7 +67,7 @@ class RevisionLoteIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        loteQuesoId = loteIdPorCodigo("7790002000020");
+        loteQuesoId = loteIdPorCodigo("7790002000025");
         lotePanId = loteIdPorCodigo("7790002000018");
         // Cada test arranca con los dos lotes sin revisar
         transactionTemplate.executeWithoutResult(status -> {
