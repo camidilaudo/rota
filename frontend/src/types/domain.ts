@@ -120,7 +120,7 @@ export interface Usuario {
   comercioId: number
 }
 
-export type TipoAccion = 'DESCUENTO' | 'TRASLADO' | 'BAJA'
+export type TipoAccion = 'DESCUENTO' | 'TRASLADO' | 'BAJA' | 'REVISION'
 
 /** LoteAfectadoVentaDTO */
 export interface LoteAfectadoVenta {

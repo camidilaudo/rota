@@ -20,6 +20,7 @@ import com.rota.entity.TipoAccion;
 import com.rota.entity.TipoMovimiento;
 import com.rota.entity.Usuario;
 import com.rota.exception.BadRequestException;
+import com.rota.exception.ConflictException;
 import com.rota.exception.ResourceNotFoundException;
 import com.rota.repository.LoteRepository;
 import com.rota.repository.MermaRepository;
@@ -38,6 +39,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
@@ -154,13 +156,21 @@ public class OperacionStockServiceImpl implements OperacionStockService {
     @Override
     @Transactional
     public LoteRevisadoResponseDTO marcarLoteRevisado(Long loteId) {
-        Lote lote = loteRepository.findById(loteId)
+        Lote lote = loteRepository.findByIdParaActualizar(loteId)
                 .orElseThrow(() -> new ResourceNotFoundException("Lote no encontrado con ID: " + loteId));
+
+        // Una sola revisión por lote y por día: la primera no se pisa
+        if (lote.getRevisadoEn() != null && lote.getRevisadoEn().toLocalDate().equals(LocalDate.now())) {
+            String revisor = lote.getRevisadoPor() != null ? lote.getRevisadoPor().getNombre() : "otro usuario";
+            throw new ConflictException(String.format("Este lote ya fue revisado hoy por %s a las %s",
+                    revisor, lote.getRevisadoEn().format(DateTimeFormatter.ofPattern("HH:mm"))));
+        }
 
         Usuario usuario = obtenerUsuarioAutenticado();
         lote.setRevisadoEn(LocalDateTime.now());
         lote.setRevisadoPor(usuario);
         loteRepository.save(lote);
+        historialAccionService.registrarAccion(lote, TipoAccion.REVISION, null, usuario);
 
         return LoteRevisadoResponseDTO.builder()
                 .loteId(lote.getId())

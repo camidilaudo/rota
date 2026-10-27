@@ -154,6 +154,21 @@ describe('Detalle de lote', () => {
     expect(screen.getByText(/Juan Repositor · 20\/10\/2026 09:15/)).toBeInTheDocument()
   })
 
+  it('muestra las revisiones en el historial del lote (HU-16)', async () => {
+    mockApi({
+      ...rutasBase(),
+      'GET /api/operaciones/lotes/5/historial': () =>
+        jsonResponse([
+          { id: 2, loteId: 5, tipoAccion: 'REVISION', motivo: null, usuarioNombre: 'Juan Repositor', usuarioEmail: 'repositor@comercio.com', fechaHora: '2026-10-27T19:41:00' },
+          ...historial,
+        ]),
+    })
+    renderApp('/lotes/5', 'ROLE_DUENO')
+
+    expect(await screen.findByText('Revisión')).toBeInTheDocument()
+    expect(screen.getByText(/Juan Repositor · 27\/10\/2026 19:41/)).toBeInTheDocument()
+  })
+
   it('da de baja unidades con su causa y las suma al historial (HU-22, HU-23)', async () => {
     const fetchMock = mockApi({
       ...rutasBase(),

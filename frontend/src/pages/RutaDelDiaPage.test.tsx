@@ -99,9 +99,28 @@ describe('Ruta del día', () => {
     renderApp('/', 'ROLE_REPOSITOR')
 
     await screen.findByText('Yogur Frutilla 500g')
-    await user.click(screen.getByRole('button', { name: 'Marcar revisado' }))
+    await user.click(screen.getByRole('button', { name: 'Marcar como revisado' }))
 
     expect(await screen.findByText('Todo en orden')).toBeInTheDocument()
     expect(fetchMock.mock.calls.some(([url, init]) => url.includes('/lotes/7/revisado') && init?.method === 'POST')).toBe(true)
+  })
+
+  it('si otro usuario ya lo revisó hoy (409) avisa quién y no deja reintentar (HU-16)', async () => {
+    mockApi({
+      'GET /api/riesgo/ruta-diaria': () =>
+        jsonResponse({ totalLotesAtencion: 1, totalLotesVencidos: 0, lotesPriorizados: [lote({ loteId: 7, productoNombre: 'Yogur Frutilla 500g' })] }),
+      'POST /api/operaciones/lotes/7/revisado': () =>
+        jsonResponse({ status: 409, error: 'Conflict', message: 'Este lote ya fue revisado hoy por Carlos Dueño a las 08:05' }, 409),
+    })
+    const user = userEvent.setup()
+    renderApp('/', 'ROLE_REPOSITOR')
+
+    await screen.findByText('Yogur Frutilla 500g')
+    await user.click(screen.getByRole('button', { name: 'Marcar como revisado' }))
+
+    expect(await screen.findByText('Este lote ya fue revisado hoy por Carlos Dueño a las 08:05')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Marcar como revisado' })).toBeDisabled()
+    // la sesión sigue abierta: un 409 no es un 401
+    expect(screen.queryByRole('button', { name: 'Ingresar' })).not.toBeInTheDocument()
   })
 })
