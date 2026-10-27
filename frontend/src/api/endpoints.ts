@@ -1,19 +1,23 @@
 import type { Rol } from '../types/auth'
 import type {
   AlertaRotacion,
+  CausaMerma,
   Categoria,
   ComparacionEscenarios,
+  ComparacionLineaBase,
   Comercio,
   DescuentoAplicado,
   DescuentoSugerido,
   HistorialAccion,
   Lote,
+  LoteRevisado,
   LoteRiesgo,
   Merma,
   ModoNotificacion,
   Pagina,
   Producto,
   ProductoConLotes,
+  ResumenMerma,
   RutaDiaria,
   Ubicacion,
   Usuario,
@@ -95,11 +99,28 @@ export const getHistorialLote = (loteId: number, signal?: AbortSignal) =>
 export const aplicarDescuento = (body: { loteId: number; porcentajeDescuento: number; motivo?: string }) =>
   apiRequest<DescuentoAplicado>('/api/operaciones/descuentos', { method: 'POST', body })
 
-export const registrarMerma = (body: { loteId: number; cantidad: number; motivo: string }) =>
+// HU-23: la baja exige una causa (vencimiento, daño o rotura); el detalle es opcional
+export const registrarMerma = (body: { loteId: number; cantidad: number; causa: CausaMerma; motivo?: string }) =>
   apiRequest<Merma>('/api/operaciones/mermas', { method: 'POST', body })
+
+// HU-25 y HU-26 (solo dueño): merma del período a valor costo y comparación contra la línea base
+export const getResumenMermas = (
+  params: { desde?: string; hasta?: string; categoriaId?: number; causa?: CausaMerma },
+  signal?: AbortSignal,
+) => apiRequest<ResumenMerma>('/api/operaciones/mermas/resumen', { query: params, signal })
+
+export const getComparacionLineaBase = (params: { desde?: string; hasta?: string }, signal?: AbortSignal) =>
+  apiRequest<ComparacionLineaBase>('/api/operaciones/mermas/comparacion-linea-base', { query: params, signal })
+
+// HU-16: el encargado deja constancia de que revisó el lote
+export const marcarLoteRevisado = (loteId: number) =>
+  apiRequest<LoteRevisado>(`/api/operaciones/lotes/${loteId}/revisado`, { method: 'POST' })
 
 // Comercio (ComercioController, solo dueño): piso de margen (HU-19)
 export const getComercio = (id: number, signal?: AbortSignal) => apiRequest<Comercio>(`/api/comercios/${id}`, { signal })
+
+export const actualizarLineaBaseMerma = (id: number, lineaBaseMermaMensual: number) =>
+  apiRequest<Comercio>(`/api/comercios/${id}/linea-base-merma`, { method: 'PATCH', body: { lineaBaseMermaMensual } })
 
 export const actualizarMargenMinimo = (id: number, margenMinimoPorcentaje: number) =>
   apiRequest<Comercio>(`/api/comercios/${id}/margen-minimo`, { method: 'PATCH', body: { margenMinimoPorcentaje } })

@@ -3,6 +3,7 @@ import { ApiError } from '../api/client'
 import { useAuth } from '../auth/AuthContext'
 import { actualizarConfiguracionCategoria, crearCategoria, crearUsuario, getCategorias } from '../api/endpoints'
 import { Button } from '../components/Button'
+import { LineaBaseMermaCard } from '../components/LineaBaseMermaCard'
 import { MargenMinimoCard } from '../components/MargenMinimoCard'
 import { PageHeader } from '../components/PageHeader'
 import { Segmented } from '../components/Segmented'
@@ -320,7 +321,10 @@ export function ConfiguracionPage() {
       <PageHeader title="Configuración" description="Categorías, piso de margen y usuarios del comercio." />
       <Categorias />
       {session?.comercioId != null ? (
-        <MargenMinimoCard comercioId={session.comercioId} />
+        <>
+          <MargenMinimoCard comercioId={session.comercioId} />
+          <LineaBaseMermaCard comercioId={session.comercioId} />
+        </>
       ) : (
         <InlineAlert kind="info">No pudimos identificar tu comercio para mostrar el piso de margen. Cerrá sesión y volvé a entrar.</InlineAlert>
       )}

@@ -154,7 +154,7 @@ describe('Detalle de lote', () => {
     expect(screen.getByText(/Juan Repositor · 20\/10\/2026 09:15/)).toBeInTheDocument()
   })
 
-  it('da de baja unidades con su motivo y las suma al historial (HU-22)', async () => {
+  it('da de baja unidades con su causa y las suma al historial (HU-22, HU-23)', async () => {
     const fetchMock = mockApi({
       ...rutasBase(),
       'POST /api/operaciones/mermas': () => jsonResponse({ id: 1, productoId: 2, productoNombre: 'Yogur Frutilla 500g', cantidadMermada: 3, motivo: 'Deteriorado' }, 201),
@@ -166,12 +166,25 @@ describe('Detalle de lote', () => {
     const cantidad = screen.getByLabelText('Unidades a dar de baja')
     await user.clear(cantidad)
     await user.type(cantidad, '3')
-    await user.selectOptions(screen.getByLabelText('Motivo'), 'Deteriorado')
+    await user.selectOptions(screen.getByLabelText('Causa'), 'DANIO')
+    await user.type(screen.getByLabelText('Detalle (opcional)'), 'se cayó la caja')
     await user.click(screen.getByRole('button', { name: 'Dar de baja' }))
 
-    expect(await screen.findByText('Listo: se dieron de baja 3 unidades (deteriorado).')).toBeInTheDocument()
+    expect(await screen.findByText('Listo: se dieron de baja 3 unidades (daño).')).toBeInTheDocument()
     const post = fetchMock.mock.calls.find(([url, init]) => url.includes('/mermas') && init?.method === 'POST')!
-    expect(JSON.parse(post[1]!.body as string)).toEqual({ loteId: 5, cantidad: 3, motivo: 'Deteriorado' })
+    expect(JSON.parse(post[1]!.body as string)).toEqual({ loteId: 5, cantidad: 3, causa: 'DANIO', motivo: 'se cayó la caja' })
+  })
+
+  it('exige elegir la causa antes de dar de baja (HU-23)', async () => {
+    const fetchMock = mockApi({ ...rutasBase() })
+    const user = userEvent.setup()
+    renderApp('/lotes/5', 'ROLE_REPOSITOR')
+
+    await screen.findByText('Dar de baja unidades')
+    await user.click(screen.getByRole('button', { name: 'Dar de baja' }))
+
+    expect(screen.getByText('Elegí la causa de la baja.')).toBeInTheDocument()
+    expect(fetchMock.mock.calls.some(([, init]) => init?.method === 'POST')).toBe(false)
   })
 
   it('avisa si el lote no existe', async () => {

@@ -44,6 +44,19 @@ public class Merma {
     @Column(name = "perdida_total", nullable = false, precision = 12, scale = 2)
     private BigDecimal perdidaTotal;
 
+    // HU-23: causa estructurada, lote y usuario de la baja (nullable: los registros anteriores no los tienen)
+    @Enumerated(EnumType.STRING)
+    @Column(length = 20)
+    private CausaMerma causa;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "lote_id")
+    private Lote lote;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "usuario_id")
+    private Usuario usuario;
+
     @CreationTimestamp
     @Column(name = "fecha_registro", nullable = false, updatable = false)
     private LocalDateTime fechaRegistro;

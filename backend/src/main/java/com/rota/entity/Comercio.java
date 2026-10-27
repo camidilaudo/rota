@@ -43,6 +43,11 @@ public class Comercio {
     @Column(name = "margen_minimo_porcentaje", nullable = false, precision = 5, scale = 2)
     private BigDecimal margenMinimoPorcentaje = new BigDecimal("20.00");
 
+    // HU-26: merma mensual (a valor costo) medida antes de usar Rotá; es la referencia para medir el ahorro.
+    // Es opcional: hasta que el dueño la carga no hay comparación posible.
+    @Column(name = "linea_base_merma_mensual", precision = 12, scale = 2)
+    private BigDecimal lineaBaseMermaMensual;
+
     @CreationTimestamp
     @Column(updatable = false)
     private LocalDateTime fechaAlta;

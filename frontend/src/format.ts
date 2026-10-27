@@ -1,4 +1,4 @@
-import type { Ubicacion } from './types/domain'
+import type { Ubicacion, CausaMerma } from './types/domain'
 
 const moneyFormatter = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' })
 const numberFormatter = new Intl.NumberFormat('es-AR')
@@ -43,6 +43,13 @@ export const UBICACION_LABEL: Record<Ubicacion, string> = {
   DEPOSITO: 'Depósito',
   HELADERA: 'Heladera',
   FREEZER: 'Freezer',
+}
+
+/** HU-23: nombre de cada causa de baja. */
+export const CAUSA_MERMA_LABEL: Record<CausaMerma, string> = {
+  VENCIMIENTO: 'Vencimiento',
+  DANIO: 'Daño',
+  ROTURA: 'Rotura',
 }
 
 /** Fecha local de hoy en formato yyyy-mm-dd, para el min de los inputs de fecha. */

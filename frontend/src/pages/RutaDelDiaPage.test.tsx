@@ -1,6 +1,7 @@
 import { screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { jsonResponse, renderApp } from '../test/renderApp'
+import { jsonResponse, mockApi, renderApp } from '../test/renderApp'
 import type { LoteRiesgo, RutaDiaria } from '../types/domain'
 
 const lote = (over: Partial<LoteRiesgo>): LoteRiesgo => ({
@@ -77,5 +78,30 @@ describe('Ruta del día', () => {
     renderApp('/', 'ROLE_REPOSITOR')
 
     expect(await screen.findByRole('button', { name: 'Reintentar' })).toBeInTheDocument()
+  })
+
+  it('marca un lote como revisado y lo saca de la lista de pendientes (HU-16)', async () => {
+    let revisado = false
+    const rutaCon = (lotes: LoteRiesgo[]): RutaDiaria => ({
+      totalLotesAtencion: lotes.length,
+      totalLotesVencidos: 0,
+      valorTotalEnRiesgo: 0,
+      lotesPriorizados: lotes,
+    })
+    const fetchMock = mockApi({
+      'GET /api/riesgo/ruta-diaria': () => jsonResponse(revisado ? rutaCon([]) : rutaCon([lote({ loteId: 7, productoNombre: 'Yogur Frutilla 500g' })])),
+      'POST /api/operaciones/lotes/7/revisado': () => {
+        revisado = true
+        return jsonResponse({ loteId: 7, productoNombre: 'Yogur Frutilla 500g', revisadoEn: '2026-10-25T10:00:00', revisadoPor: 'Juan' })
+      },
+    })
+    const user = userEvent.setup()
+    renderApp('/', 'ROLE_REPOSITOR')
+
+    await screen.findByText('Yogur Frutilla 500g')
+    await user.click(screen.getByRole('button', { name: 'Marcar revisado' }))
+
+    expect(await screen.findByText('Todo en orden')).toBeInTheDocument()
+    expect(fetchMock.mock.calls.some(([url, init]) => url.includes('/lotes/7/revisado') && init?.method === 'POST')).toBe(true)
   })
 })

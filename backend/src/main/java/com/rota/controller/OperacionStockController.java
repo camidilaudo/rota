@@ -7,6 +7,7 @@ import com.rota.dto.response.ComparacionEscenariosResponseDTO;
 import com.rota.dto.response.DescuentoAplicadoResponseDTO;
 import com.rota.dto.response.DescuentoSugeridoResponseDTO;
 import com.rota.dto.response.HistorialAccionResponseDTO;
+import com.rota.dto.response.LoteRevisadoResponseDTO;
 import com.rota.dto.response.MermaResponseDTO;
 import com.rota.dto.response.VentaResponseDTO;
 import com.rota.service.OperacionStockService;
@@ -28,6 +29,12 @@ public class OperacionStockController {
     @PostMapping("/descuentos")
     public ResponseEntity<DescuentoAplicadoResponseDTO> aplicarDescuento(@Valid @RequestBody AplicarDescuentoRequestDTO dto) {
         return ResponseEntity.ok(operacionStockService.aplicarDescuento(dto));
+    }
+
+    // HU-16: marcar un lote como revisado
+    @PostMapping("/lotes/{loteId}/revisado")
+    public ResponseEntity<LoteRevisadoResponseDTO> marcarRevisado(@PathVariable Long loteId) {
+        return ResponseEntity.ok(operacionStockService.marcarLoteRevisado(loteId));
     }
 
     @PostMapping("/mermas")

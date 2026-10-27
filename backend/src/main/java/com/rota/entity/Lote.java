@@ -8,6 +8,7 @@ import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "lotes")
@@ -48,6 +49,14 @@ public class Lote {
     @Column(name = "porcentaje_descuento", precision = 5, scale = 2)
     @Builder.Default
     private BigDecimal porcentajeDescuento = BigDecimal.ZERO;
+
+    // HU-16: constancia de revisión (cuándo y quién). Un lote revisado hoy sale de la ruta del día.
+    @Column(name = "revisado_en")
+    private LocalDateTime revisadoEn;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "revisado_por_id")
+    private Usuario revisadoPor;
 
     @PrePersist
     public void prePersist() {

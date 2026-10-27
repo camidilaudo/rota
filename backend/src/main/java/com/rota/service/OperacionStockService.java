@@ -7,6 +7,7 @@ import com.rota.dto.response.ComparacionEscenariosResponseDTO;
 import com.rota.dto.response.DescuentoAplicadoResponseDTO;
 import com.rota.dto.response.DescuentoSugeridoResponseDTO;
 import com.rota.dto.response.HistorialAccionResponseDTO;
+import com.rota.dto.response.LoteRevisadoResponseDTO;
 import com.rota.dto.response.MermaResponseDTO;
 import com.rota.dto.response.VentaResponseDTO;
 
@@ -28,4 +29,7 @@ public interface OperacionStockService {
 
     // HU-22: historial de acciones tomadas sobre un lote
     List<HistorialAccionResponseDTO> obtenerHistorialDeLote(Long loteId);
+
+    // HU-16: el encargado deja constancia de que revisó el lote (usuario y hora); sale de la ruta del día
+    LoteRevisadoResponseDTO marcarLoteRevisado(Long loteId);
 }

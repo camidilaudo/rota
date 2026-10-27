@@ -38,6 +38,6 @@ describe('menú según rol', () => {
 
   it('el dueño ve Configuración', () => {
     renderApp('/', 'ROLE_DUENO')
-    expect(navLabels()).toEqual(['Ruta del día', 'Ventas', 'Recepción', 'Reponer', 'Consulta', 'Configuración'])
+    expect(navLabels()).toEqual(['Ruta del día', 'Ventas', 'Recepción', 'Reponer', 'Consulta', 'Merma', 'Configuración'])
   })
 })

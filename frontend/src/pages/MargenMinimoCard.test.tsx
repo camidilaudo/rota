@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react'
+import { screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { jsonResponse, mockApi, renderApp } from '../test/renderApp'
@@ -19,7 +19,7 @@ describe('Piso de margen (HU-19)', () => {
     expect(campo).toHaveValue('20')
     await user.clear(campo)
     await user.type(campo, '30')
-    await user.click(screen.getAllByRole('button', { name: 'Guardar' }).at(-1)!)
+    await user.click(within(campo.closest('form')!).getByRole('button', { name: 'Guardar' }))
 
     expect(await screen.findByText(/por debajo de 30%/)).toBeInTheDocument()
     const patch = fetchMock.mock.calls.find(([, init]) => init?.method === 'PATCH')!
@@ -37,7 +37,7 @@ describe('Piso de margen (HU-19)', () => {
     const campo = await screen.findByLabelText('Piso de margen (%)')
     await user.clear(campo)
     await user.type(campo, '99')
-    await user.click(screen.getAllByRole('button', { name: 'Guardar' }).at(-1)!)
+    await user.click(within(campo.closest('form')!).getByRole('button', { name: 'Guardar' }))
 
     expect(screen.getByText('Ingresá un margen entre 0% y 95%.')).toBeInTheDocument()
   })

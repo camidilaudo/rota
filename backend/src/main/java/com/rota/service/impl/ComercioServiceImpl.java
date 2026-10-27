@@ -1,5 +1,6 @@
 package com.rota.service.impl;
 
+import com.rota.dto.request.ActualizarLineaBaseMermaRequestDTO;
 import com.rota.dto.request.ActualizarMargenMinimoRequestDTO;
 import com.rota.dto.request.ComercioRequestDTO;
 import com.rota.dto.response.CategoriaResponseDTO;
@@ -108,6 +109,22 @@ public class ComercioServiceImpl implements ComercioService {
         return mapToDTO(comercio, duenoEmail, categoriaRepository.findByComercioIdAndEsPilotoTrue(id));
     }
 
+    @Override
+    @Transactional
+    public ComercioResponseDTO actualizarLineaBaseMerma(Long id, ActualizarLineaBaseMermaRequestDTO dto) {
+        Comercio comercio = comercioRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Comercio no encontrado con ID: " + id));
+
+        comercio.setLineaBaseMermaMensual(dto.getLineaBaseMermaMensual());
+        comercioRepository.save(comercio);
+
+        String duenoEmail = usuarioRepository.findFirstByComercioIdAndRol(id, Rol.ROLE_DUENO)
+                .map(Usuario::getEmail)
+                .orElse(null);
+
+        return mapToDTO(comercio, duenoEmail, categoriaRepository.findByComercioIdAndEsPilotoTrue(id));
+    }
+
     private ComercioResponseDTO mapToDTO(Comercio comercio, String duenoEmail, List<Categoria> categoriasPiloto) {
         return ComercioResponseDTO.builder()
                 .id(comercio.getId())
@@ -116,6 +133,7 @@ public class ComercioServiceImpl implements ComercioService {
                 .direccion(comercio.getDireccion())
                 .activo(comercio.getActivo())
                 .margenMinimoPorcentaje(comercio.getMargenMinimoPorcentaje())
+                .lineaBaseMermaMensual(comercio.getLineaBaseMermaMensual())
                 .fechaAlta(comercio.getFechaAlta())
                 .duenoEmail(duenoEmail)
                 .categoriasPiloto(categoriasPiloto.stream().map(this::mapCategoriaToDTO).toList())

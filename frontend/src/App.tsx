@@ -5,6 +5,7 @@ import { SOLO_DUENO } from './navigation'
 import { ConfiguracionPage } from './pages/ConfiguracionPage'
 import { ConsultaPage } from './pages/ConsultaPage'
 import { LoginPage } from './pages/LoginPage'
+import { MermasPage } from './pages/MermasPage'
 import { LotePage } from './pages/LotePage'
 import { NotFoundPage } from './pages/NotFoundPage'
 import { RecepcionPage } from './pages/RecepcionPage'
@@ -25,6 +26,7 @@ export function AppRoutes() {
           <Route path="reponer" element={<ReponerPage />} />
           <Route path="consulta" element={<ConsultaPage />} />
           <Route element={<RequireRole roles={SOLO_DUENO} />}>
+            <Route path="merma" element={<MermasPage />} />
             <Route path="configuracion" element={<ConfiguracionPage />} />
           </Route>
           <Route path="*" element={<NotFoundPage />} />

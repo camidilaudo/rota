@@ -1,5 +1,6 @@
 package com.rota.controller;
 
+import com.rota.dto.request.ActualizarLineaBaseMermaRequestDTO;
 import com.rota.dto.request.ActualizarMargenMinimoRequestDTO;
 import com.rota.dto.request.ComercioRequestDTO;
 import com.rota.dto.response.ComercioResponseDTO;
@@ -28,6 +29,15 @@ public class ComercioController {
     @PreAuthorize("hasRole('DUENO')")
     public ResponseEntity<ComercioResponseDTO> obtenerPorId(@PathVariable Long id) {
         return ResponseEntity.ok(comercioService.obtenerPorId(id));
+    }
+
+    // HU-26: el dueño carga la línea base de merma mensual (antes de usar Rotá)
+    @PatchMapping("/{id}/linea-base-merma")
+    @PreAuthorize("hasRole('DUENO')")
+    public ResponseEntity<ComercioResponseDTO> actualizarLineaBaseMerma(
+            @PathVariable Long id,
+            @Valid @RequestBody ActualizarLineaBaseMermaRequestDTO dto) {
+        return ResponseEntity.ok(comercioService.actualizarLineaBaseMerma(id, dto));
     }
 
     // HU-19: el dueño configura el piso de margen mínimo del comercio
