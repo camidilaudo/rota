@@ -9,6 +9,7 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
 @Builder
@@ -19,6 +20,8 @@ public class LoteRiesgoResponseDTO {
     private String productoNombre;
     private String categoriaNombre;
     private Integer cantidad;
+    // HU-16: cuándo se revisó el lote por última vez (null si nunca)
+    private LocalDateTime revisadoEn;
     private LocalDate fechaVencimiento;
     private Ubicacion ubicacion;
     private Integer diasHastaVencimiento;

@@ -17,6 +17,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
   { path: '/recepcion', label: 'Recepción', icon: 'package', roles: TODOS_LOS_ROLES },
   { path: '/reponer', label: 'Reponer', icon: 'swap', roles: TODOS_LOS_ROLES },
   { path: '/consulta', label: 'Consulta', icon: 'search', roles: TODOS_LOS_ROLES },
+  { path: '/merma', label: 'Merma', icon: 'chart', roles: SOLO_DUENO },
   { path: '/configuracion', label: 'Configuración', icon: 'settings', roles: SOLO_DUENO },
 ]
 

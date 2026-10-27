@@ -1,11 +1,13 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { getRutaDiaria } from '../api/endpoints'
+import { getRutaDiaria, marcarLoteRevisado } from '../api/endpoints'
 import { useAuth } from '../auth/AuthContext'
+import { Button } from '../components/Button'
 import { PageHeader } from '../components/PageHeader'
 import { RiskBadge } from '../components/RiskBadge'
-import { EmptyState, ErrorState, LoadingList } from '../components/States'
+import { EmptyState, ErrorState, InlineAlert, LoadingList } from '../components/States'
 import { UBICACION_LABEL, describeDaysLeft, formatDate, formatMoney, formatNumber, formatUnits } from '../format'
-import { useApi } from '../hooks/useApi'
+import { errorMessage, useApi } from '../hooks/useApi'
 import type { LoteRiesgo, Ubicacion } from '../types/domain'
 
 function groupByUbicacion(lotes: LoteRiesgo[]): [Ubicacion, LoteRiesgo[]][] {
@@ -27,8 +29,24 @@ function Stat({ label, value, tone }: { label: string; value: string; tone?: 'da
   )
 }
 
-function LoteCard({ lote, showValue }: { lote: LoteRiesgo; showValue: boolean }) {
+function LoteCard({ lote, showValue, onRevisado }: { lote: LoteRiesgo; showValue: boolean; onRevisado: () => void }) {
   const vencido = lote.estadoRiesgo === 'CRITICO_VENCIDO'
+  const [marcando, setMarcando] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  // HU-16: deja constancia (usuario y hora) y el lote sale de la lista de pendientes del día
+  async function marcarRevisado() {
+    setError(null)
+    setMarcando(true)
+    try {
+      await marcarLoteRevisado(lote.loteId)
+      onRevisado()
+    } catch (err) {
+      setError(errorMessage(err))
+      setMarcando(false)
+    }
+  }
+
   return (
     <li className="rounded-2xl border border-border bg-card p-4">
       <div className="flex items-start justify-between gap-3">
@@ -70,12 +88,22 @@ function LoteCard({ lote, showValue }: { lote: LoteRiesgo; showValue: boolean })
           </div>
         )}
       </dl>
-      <Link
-        to={`/lotes/${lote.loteId}`}
-        className="mt-3 inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-border-strong bg-card px-4 text-base font-bold text-foreground transition-colors hover:bg-muted"
-      >
-        Ver y actuar
-      </Link>
+      {error && (
+        <div className="mt-3">
+          <InlineAlert kind="error">{error}</InlineAlert>
+        </div>
+      )}
+      <div className="mt-3 grid gap-2 sm:grid-cols-2">
+        <Link
+          to={`/lotes/${lote.loteId}`}
+          className="inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-border-strong bg-card px-4 text-base font-bold text-foreground transition-colors hover:bg-muted"
+        >
+          Ver y actuar
+        </Link>
+        <Button variant="secondary" fullWidth loading={marcando} onClick={marcarRevisado}>
+          {marcando ? 'Guardando' : 'Marcar revisado'}
+        </Button>
+      </div>
     </li>
   )
 }
@@ -118,7 +146,7 @@ export function RutaDelDiaPage() {
                 </h2>
                 <ul className="grid gap-3 lg:grid-cols-2">
                   {lotes.map((lote) => (
-                    <LoteCard key={lote.loteId} lote={lote} showValue={isDueno} />
+                    <LoteCard key={lote.loteId} lote={lote} showValue={isDueno} onRevisado={reload} />
                   ))}
                 </ul>
               </section>

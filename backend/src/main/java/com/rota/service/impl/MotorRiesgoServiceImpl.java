@@ -48,6 +48,8 @@ public class MotorRiesgoServiceImpl implements MotorRiesgoService {
         List<LoteRiesgoResponseDTO> priorizados = todos.stream()
                 // Un lote sin stock (por ejemplo, agotado por ventas) ya no requiere ninguna acción
                 .filter(l -> l.getCantidad() != null && l.getCantidad() > 0)
+                // HU-16: un lote revisado hoy sale de la lista de pendientes del día
+                .filter(l -> !esRevisadoHoy(l))
                 .filter(l -> l.getEstadoRiesgo() == EstadoRiesgo.ROJO || l.getEstadoRiesgo() == EstadoRiesgo.CRITICO_VENCIDO)
                 .sorted(Comparator.comparing(LoteRiesgoResponseDTO::getUbicacion, Comparator.nullsLast(Comparator.naturalOrder()))
                         .thenComparing(LoteRiesgoResponseDTO::getFechaVencimiento, Comparator.nullsLast(Comparator.naturalOrder())))
@@ -69,6 +71,10 @@ public class MotorRiesgoServiceImpl implements MotorRiesgoService {
                 .valorTotalEnRiesgo(SeguridadUtils.esRepositor() ? null : valorTotal)
                 .lotesPriorizados(priorizados)
                 .build();
+    }
+
+    private boolean esRevisadoHoy(LoteRiesgoResponseDTO l) {
+        return l.getRevisadoEn() != null && l.getRevisadoEn().toLocalDate().equals(LocalDate.now());
     }
 
     private LoteRiesgoResponseDTO evaluarLote(Lote lote) {
@@ -130,6 +136,7 @@ public class MotorRiesgoServiceImpl implements MotorRiesgoService {
                 .productoNombre(producto != null ? producto.getNombre() : null)
                 .categoriaNombre(categoria != null ? categoria.getNombre() : null)
                 .cantidad(cantidad)
+                .revisadoEn(lote.getRevisadoEn())
                 .fechaVencimiento(lote.getFechaVencimiento())
                 .ubicacion(lote.getUbicacion())
                 .diasHastaVencimiento(diasRestantes)

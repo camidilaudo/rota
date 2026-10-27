@@ -16,6 +16,8 @@ public class ComercioResponseDTO {
     private String direccion;
     private Boolean activo;
     private BigDecimal margenMinimoPorcentaje;
+    // HU-26
+    private BigDecimal lineaBaseMermaMensual;
     private LocalDateTime fechaAlta;
     private String duenoEmail;
     private List<CategoriaResponseDTO> categoriasPiloto;

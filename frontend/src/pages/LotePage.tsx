@@ -9,9 +9,9 @@ import { RiskBadge, UbicacionTag } from '../components/RiskBadge'
 import { SelectField } from '../components/SelectField'
 import { EmptyState, ErrorState, InlineAlert, LoadingList } from '../components/States'
 import { TextField } from '../components/TextField'
-import { describeDaysLeft, formatDate, formatDateTime, formatMoney, formatNumber, formatPercent, formatUnits } from '../format'
+import { CAUSA_MERMA_LABEL, describeDaysLeft, formatDate, formatDateTime, formatMoney, formatNumber, formatPercent, formatUnits } from '../format'
 import { errorMessage, useApi } from '../hooks/useApi'
-import type { DescuentoSugerido, EscenarioProyectado, LoteRiesgo, TipoAccion } from '../types/domain'
+import type { CausaMerma, DescuentoSugerido, EscenarioProyectado, LoteRiesgo, TipoAccion } from '../types/domain'
 
 const DESCUENTO_MIN = 5
 const DESCUENTO_MAX = 90
@@ -22,7 +22,7 @@ const ACCION_LABEL: Record<TipoAccion, string> = {
   BAJA: 'Baja',
 }
 
-const MOTIVOS_BAJA = ['Vencido', 'Deteriorado', 'Roto o dañado', 'Otro']
+const CAUSAS_BAJA = Object.entries(CAUSA_MERMA_LABEL) as [CausaMerma, string][]
 
 interface SeccionProps {
   lote: LoteRiesgo
@@ -279,7 +279,9 @@ function EscenariosSeccion({ lote, version }: SeccionProps) {
 function BajaSeccion({ lote, onCambio }: SeccionProps) {
   const [confirmacion, setConfirmacion] = useState<string | null>(null)
   const [cantidad, setCantidad] = useState('1')
-  const [motivo, setMotivo] = useState(MOTIVOS_BAJA[0])
+  const [causa, setCausa] = useState<CausaMerma | ''>('')
+  const [detalle, setDetalle] = useState('')
+  const [errorCausa, setErrorCausa] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [formError, setFormError] = useState<string | null>(null)
   const [guardando, setGuardando] = useState(false)
@@ -290,13 +292,16 @@ function BajaSeccion({ lote, onCambio }: SeccionProps) {
     if (!Number.isInteger(n) || n < 1) return setError('Ingresá al menos 1 unidad.')
     if (n > lote.cantidad) return setError(`El lote tiene ${formatUnits(lote.cantidad)}.`)
     setError(null)
+    if (!causa) return setErrorCausa('Elegí la causa de la baja.')
+    setErrorCausa(null)
     setFormError(null)
     setConfirmacion(null)
     setGuardando(true)
     try {
-      await registrarMerma({ loteId: lote.loteId, cantidad: n, motivo })
+      await registrarMerma({ loteId: lote.loteId, cantidad: n, causa, motivo: detalle.trim() || undefined })
       setCantidad('1')
-      setConfirmacion(`Listo: se dieron de baja ${formatUnits(n)} (${motivo.toLowerCase()}).`)
+      setDetalle('')
+      setConfirmacion(`Listo: se dieron de baja ${formatUnits(n)} (${CAUSA_MERMA_LABEL[causa].toLowerCase()}).`)
       onCambio()
     } catch (err) {
       setFormError(errorMessage(err))
@@ -316,13 +321,15 @@ function BajaSeccion({ lote, onCambio }: SeccionProps) {
           onChange={(e) => setCantidad(e.target.value.replace(/\D/g, ''))}
           error={error ?? undefined}
         />
-        <SelectField label="Motivo" value={motivo} onChange={(e) => setMotivo(e.target.value)}>
-          {MOTIVOS_BAJA.map((m) => (
-            <option key={m} value={m}>
-              {m}
+        <SelectField label="Causa" value={causa} onChange={(e) => setCausa(e.target.value as CausaMerma | '')} error={errorCausa ?? undefined}>
+          <option value="">Elegí la causa</option>
+          {CAUSAS_BAJA.map(([valor, etiqueta]) => (
+            <option key={valor} value={valor}>
+              {etiqueta}
             </option>
           ))}
         </SelectField>
+        <TextField label="Detalle (opcional)" value={detalle} maxLength={120} onChange={(e) => setDetalle(e.target.value)} />
         <Button type="submit" variant="danger" fullWidth loading={guardando} disabled={lote.cantidad === 0}>
           {guardando ? 'Registrando' : 'Dar de baja'}
         </Button>

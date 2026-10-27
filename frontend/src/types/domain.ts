@@ -26,6 +26,8 @@ export interface LoteRiesgo {
   diasCobertura?: number | null
   /** HU-15: true si, al ritmo actual, el lote no se vende antes de vencer. */
   riesgoPorVelocidad?: boolean
+  /** HU-16: cuándo se revisó el lote por última vez (null si nunca). */
+  revisadoEn?: string | null
 }
 
 /** RutaDiariaResponseDTO */
@@ -193,7 +195,56 @@ export interface Merma {
   productoNombre: string
   cantidadMermada: number
   motivo: string
+  /** HU-23: causa estructurada de la baja. */
+  causa?: CausaMerma | null
+  loteId?: number | null
   perdidaTotal?: number
+}
+
+/** HU-23: causas válidas de una baja. */
+export type CausaMerma = 'VENCIMIENTO' | 'DANIO' | 'ROTURA'
+
+/** ResumenMermaResponseDTO.Grupo (HU-25) */
+export interface MermaGrupo {
+  clave: string
+  nombre: string
+  unidades: number
+  perdidaTotal: number
+  porcentaje: number
+}
+
+/** ResumenMermaResponseDTO (HU-25): merma del período a valor costo. */
+export interface ResumenMerma {
+  desde: string
+  hasta: string
+  perdidaTotal: number
+  unidadesTotales: number
+  registros: number
+  porCategoria: MermaGrupo[]
+  porCausa: MermaGrupo[]
+  porMes: { mes: string; unidades: number; perdidaTotal: number }[]
+}
+
+/** ComparacionLineaBaseResponseDTO (HU-26) */
+export interface ComparacionLineaBase {
+  desde: string
+  hasta: string
+  hayLineaBase: boolean
+  lineaBaseMensual?: number | null
+  lineaBasePeriodo?: number | null
+  mermaPeriodo: number
+  ahorroPesos?: number | null
+  ahorroPorcentaje?: number | null
+  mejoro?: boolean | null
+  mensaje: string
+}
+
+/** LoteRevisadoResponseDTO (HU-16) */
+export interface LoteRevisado {
+  loteId: number
+  productoNombre: string
+  revisadoEn: string
+  revisadoPor: string
 }
 
 /** HistorialAccionResponseDTO (HU-22) */
@@ -212,4 +263,6 @@ export interface Comercio {
   id: number
   nombre: string
   margenMinimoPorcentaje: number
+  /** HU-26: merma mensual (a costo) medida antes de usar Rotá. */
+  lineaBaseMermaMensual?: number | null
 }

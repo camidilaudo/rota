@@ -47,6 +47,8 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.PUT, "/api/categorias/**", "/api/productos/**").hasRole("DUENO")
                 .requestMatchers(HttpMethod.DELETE, "/api/categorias/**", "/api/productos/**").hasRole("DUENO")
                 .requestMatchers("/api/comercios/**", "/api/usuarios/**").hasRole("DUENO")
+                // HU-25 y HU-26: reportes de merma valorizados a costo (HU-05: el repositor no ve costos)
+                .requestMatchers("/api/operaciones/mermas/resumen", "/api/operaciones/mermas/comparacion-linea-base").hasRole("DUENO")
                 
                 // Endpoints compartidos con REPOSITOR
                 .requestMatchers("/api/lotes/**", "/api/operaciones/**", "/api/riesgo/**").hasAnyRole("DUENO", "REPOSITOR")

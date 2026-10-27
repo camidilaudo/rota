@@ -9,6 +9,7 @@ import com.rota.dto.response.DescuentoSugeridoResponseDTO;
 import com.rota.dto.response.EscenarioProyectadoDTO;
 import com.rota.dto.response.HistorialAccionResponseDTO;
 import com.rota.dto.response.LoteAfectadoVentaDTO;
+import com.rota.dto.response.LoteRevisadoResponseDTO;
 import com.rota.dto.response.MermaResponseDTO;
 import com.rota.dto.response.VentaResponseDTO;
 import com.rota.entity.Lote;
@@ -36,6 +37,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
@@ -122,11 +124,21 @@ public class OperacionStockServiceImpl implements OperacionStockService {
         lote.setCantidad(lote.getCantidad() - dto.getCantidad());
         loteRepository.save(lote);
 
+        // HU-23: la causa es obligatoria; el detalle es opcional y se agrega a la causa
+        String detalle = dto.getMotivo() != null ? dto.getMotivo().trim() : "";
+        String motivoCompleto = detalle.isEmpty()
+                ? dto.getCausa().getEtiqueta()
+                : dto.getCausa().getEtiqueta() + ": " + detalle;
+        Usuario usuario = obtenerUsuarioAutenticado();
+
         // Registramos la merma monetaria
         Merma merma = Merma.builder()
                 .producto(producto)
+                .lote(lote)
+                .causa(dto.getCausa())
+                .usuario(usuario)
                 .cantidad(dto.getCantidad())
-                .motivo(dto.getMotivo().trim())
+                .motivo(motivoCompleto)
                 .costoUnitario(costoUnitario)
                 .perdidaTotal(perdidaTotal)
                 .build();
@@ -134,9 +146,28 @@ public class OperacionStockServiceImpl implements OperacionStockService {
         Merma mermaGuardada = mermaRepository.save(merma);
 
         // HU-22: trazabilidad de la baja
-        historialAccionService.registrarAccion(lote, TipoAccion.BAJA, dto.getMotivo().trim(), obtenerUsuarioAutenticado());
+        historialAccionService.registrarAccion(lote, TipoAccion.BAJA, motivoCompleto, usuario);
 
         return mapToDTO(mermaGuardada);
+    }
+
+    @Override
+    @Transactional
+    public LoteRevisadoResponseDTO marcarLoteRevisado(Long loteId) {
+        Lote lote = loteRepository.findById(loteId)
+                .orElseThrow(() -> new ResourceNotFoundException("Lote no encontrado con ID: " + loteId));
+
+        Usuario usuario = obtenerUsuarioAutenticado();
+        lote.setRevisadoEn(LocalDateTime.now());
+        lote.setRevisadoPor(usuario);
+        loteRepository.save(lote);
+
+        return LoteRevisadoResponseDTO.builder()
+                .loteId(lote.getId())
+                .productoNombre(lote.getProducto().getNombre())
+                .revisadoEn(lote.getRevisadoEn())
+                .revisadoPor(usuario.getNombre())
+                .build();
     }
 
     @Override
@@ -435,6 +466,8 @@ public class OperacionStockServiceImpl implements OperacionStockService {
                 .productoCodigoBarra(m.getProducto().getCodigoBarra())
                 .cantidadMermada(m.getCantidad())
                 .motivo(m.getMotivo())
+                .causa(m.getCausa())
+                .loteId(m.getLote() != null ? m.getLote().getId() : null)
                 .costoUnitario(m.getCostoUnitario())
                 .perdidaTotal(m.getPerdidaTotal())
                 .fechaRegistro(m.getFechaRegistro())
