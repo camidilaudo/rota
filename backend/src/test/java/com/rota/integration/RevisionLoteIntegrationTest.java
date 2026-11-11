@@ -12,11 +12,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.support.TransactionTemplate;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -61,6 +63,9 @@ class RevisionLoteIntegrationTest {
 
     @Autowired
     private TransactionTemplate transactionTemplate;
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     private Long loteQuesoId;
     private Long lotePanId;
@@ -137,6 +142,23 @@ class RevisionLoteIntegrationTest {
         assertEquals(1, codigos.stream().filter(c -> c == 200).count(), "códigos: " + codigos);
         assertEquals(1, codigos.stream().filter(c -> c == 409).count(), "códigos: " + codigos);
         assertEquals(historialPrevio + 1, contarRevisiones(lotePanId));
+    }
+
+    @Test
+    @DisplayName("HU-16: un lote vencido se puede marcar como revisado")
+    void testRevisionDeLoteVencido() throws Exception {
+        String tokenRepositor = obtenerToken("repositor@comercio.com");
+        LocalDate vencimientoOriginal = transactionTemplate.execute(s -> loteRepository.findById(loteQuesoId).orElseThrow().getFechaVencimiento());
+        // SQL directo para simular un lote que venció después de cargarse (como pasa en la demo con el paso de los días)
+        jdbcTemplate.update("UPDATE lotes SET fecha_vencimiento = ? WHERE id = ?", LocalDate.now().minusDays(2), loteQuesoId);
+        try {
+            mockMvc.perform(post("/api/operaciones/lotes/" + loteQuesoId + "/revisado")
+                    .header("Authorization", "Bearer " + tokenRepositor))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.revisadoPor").value("Juan Repositor"));
+        } finally {
+            jdbcTemplate.update("UPDATE lotes SET fecha_vencimiento = ? WHERE id = ?", vencimientoOriginal, loteQuesoId);
+        }
     }
 
     private long contarRevisiones(Long loteId) {

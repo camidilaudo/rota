@@ -57,28 +57,33 @@ export function BarcodeScanner({ onDetected, onClose }: BarcodeScannerProps) {
     const hints = new Map<DecodeHintType, unknown>([[DecodeHintType.POSSIBLE_FORMATS, FORMATOS]])
     const reader = new BrowserMultiFormatReader(hints, { delayBetweenScanAttempts: 100 })
 
-    reader
-      .decodeFromConstraints({ audio: false, video: { facingMode: { ideal: 'environment' } } }, videoRef.current!, (result, _err, controls) => {
-        if (!result || detectadoRef.current) return
-        // Una sola lectura: se ignora todo lo que llegue después y se apaga la cámara
-        detectadoRef.current = true
-        const instante = performance.now()
-        controls.stop()
-        onDetectedRef.current(result.getText(), instante)
-      })
-      .then((controls) => {
-        controlsRef.current = controls
-        if (cancelado || detectadoRef.current) controls.stop()
-        else setListo(true)
-      })
-      .catch((err: unknown) => {
-        if (!cancelado) setErrorCamara(mensajeDeError(err))
-      })
+    // La cámara se abre un tick después: en desarrollo, StrictMode desmonta el primer montaje al instante
+    // y así se cancela antes de abrirla, sin que su limpieza corte el stream del segundo montaje.
+    const apertura = window.setTimeout(() => {
+      reader
+        .decodeFromConstraints({ audio: false, video: { facingMode: { ideal: 'environment' } } }, videoRef.current!, (result, _err, controls) => {
+          if (!result || detectadoRef.current) return
+          // Una sola lectura: se ignora todo lo que llegue después y se apaga la cámara
+          detectadoRef.current = true
+          const instante = performance.now()
+          controls.stop()
+          onDetectedRef.current(result.getText(), instante)
+        })
+        .then((controls) => {
+          controlsRef.current = controls
+          if (cancelado || detectadoRef.current) controls.stop()
+          else setListo(true)
+        })
+        .catch((err: unknown) => {
+          if (!cancelado) setErrorCamara(mensajeDeError(err))
+        })
+    }, 0)
 
     const ayuda = window.setTimeout(() => setMostrarAyuda(true), AYUDA_DESPUES_DE_MS)
 
     return () => {
       cancelado = true
+      window.clearTimeout(apertura)
       window.clearTimeout(ayuda)
       controlsRef.current?.stop()
       controlsRef.current = null

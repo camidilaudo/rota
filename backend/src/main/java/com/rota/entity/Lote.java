@@ -1,7 +1,6 @@
 package com.rota.entity;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
@@ -34,8 +33,9 @@ public class Lote {
     @Column(nullable = false)
     private Integer cantidad;
 
+    // Sin @FutureOrPresent: un lote existente puede vencer y aun así tiene que poder actualizarse
+    // (revisión, descuento, traslado). La creación exige fecha futura vía LoteRequestDTO.
     @NotNull(message = "La fecha de vencimiento es obligatoria")
-    @FutureOrPresent(message = "La fecha de vencimiento no puede ser anterior a hoy")
     @Column(name = "fecha_vencimiento", nullable = false)
     private LocalDate fechaVencimiento;
 
