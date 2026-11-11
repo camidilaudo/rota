@@ -1,4 +1,4 @@
-import { screen, within } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { jsonResponse, mockApi, renderApp } from '../test/renderApp'
@@ -96,6 +96,20 @@ describe('Detalle de lote', () => {
     expect(screen.getByText(/perfora el piso de margen/)).toBeInTheDocument()
     expect(await screen.findByText('Conviene aplicar el descuento: deja más margen.')).toBeInTheDocument()
     expect(screen.getByText('Con 25% de descuento')).toBeInTheDocument()
+  })
+
+  it('si el descuento sugerido es 0, no se muestra la comparación con/sin descuento', async () => {
+    mockApi({
+      ...rutasBase(),
+      'GET /api/operaciones/lotes/5/descuento-sugerido': () => jsonResponse({ ...sugerido, porcentajeDescuentoRecomendado: 0, porcentajeDescuentoSugerido: 0 }),
+      'GET /api/operaciones/lotes/5/comparar-escenarios': () =>
+        jsonResponse({ ...escenarios, recomendacion: 'SIN_DESCUENTO', escenarioConDescuento: { ...escenarios.escenarioConDescuento, porcentajeDescuento: 0 } }),
+    })
+    renderApp('/lotes/5', 'ROLE_DUENO')
+
+    expect(await screen.findByText('Descuento recomendado')).toBeInTheDocument()
+    await waitFor(() => expect(screen.queryByText('Con descuento o sin descuento')).not.toBeInTheDocument())
+    expect(screen.queryByText('Sin descuento')).not.toBeInTheDocument()
   })
 
   it('el repositor no ve márgenes ni escenarios', async () => {
