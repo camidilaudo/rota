@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react'
+import { act, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { jsonResponse, mockApi, renderApp } from '../test/renderApp'
@@ -17,6 +17,19 @@ const leche: ProductoConLotes = {
 }
 
 const pagina = (content: ProductoConLotes[]) => ({ content, totalElements: content.length, totalPages: 1, number: 0, size: 10, last: true })
+
+type Callback = (result: { getText: () => string } | undefined, error: unknown, controls: { stop: () => void }) => void
+
+const zx = vi.hoisted(() => ({ callback: null as Callback | null, stop: vi.fn() }))
+
+vi.mock('@zxing/browser', () => ({
+  BrowserMultiFormatReader: class {
+    decodeFromConstraints(_constraints: unknown, _video: unknown, callback: Callback) {
+      zx.callback = callback
+      return Promise.resolve({ stop: zx.stop })
+    }
+  },
+}))
 
 afterEach(() => vi.unstubAllGlobals())
 
@@ -47,5 +60,21 @@ describe('Consulta rápida', () => {
     await user.type(screen.getByLabelText('Nombre o código de barras'), 'zzz')
 
     expect(await screen.findByText('Sin resultados')).toBeInTheDocument()
+  })
+
+  it('escanea el código con la cámara y lo consulta', async () => {
+    Object.defineProperty(navigator, 'mediaDevices', { value: { getUserMedia: vi.fn() }, configurable: true })
+    const fetchMock = mockApi({ 'GET /api/busqueda/productos': () => jsonResponse(pagina([leche])) })
+    const user = userEvent.setup()
+    renderApp('/consulta', 'ROLE_REPOSITOR')
+
+    await user.click(screen.getByRole('button', { name: 'Escanear con la cámara' }))
+    await waitFor(() => expect(zx.callback).not.toBeNull())
+    act(() => zx.callback!({ getText: () => '7790001000011' }, undefined, { stop: zx.stop }))
+
+    expect(await screen.findByText('Leche Entera 1L')).toBeInTheDocument()
+    expect(screen.getByLabelText('Nombre o código de barras')).toHaveValue('7790001000011')
+    expect(fetchMock.mock.calls.at(-1)![0]).toContain('query=7790001000011')
+    expect(screen.queryByRole('dialog', { name: 'Escanear código de barras' })).not.toBeInTheDocument()
   })
 })
