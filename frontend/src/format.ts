@@ -59,3 +59,11 @@ export function todayIso(): string {
   const d = String(now.getDate()).padStart(2, '0')
   return `${now.getFullYear()}-${m}-${d}`
 }
+
+/** Misma fecha un año antes (yyyy-mm-dd). El 29/02 pasa al 28/02 del año anterior. */
+export function unAnioAntes(iso: string): string {
+  const [y, m, d] = iso.split('-').map(Number)
+  const fecha = new Date(y - 1, m - 1, d)
+  if (fecha.getMonth() !== m - 1) fecha.setDate(28)
+  return `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}-${String(fecha.getDate()).padStart(2, '0')}`
+}
