@@ -1,4 +1,4 @@
-import { screen, within } from '@testing-library/react'
+import { fireEvent, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { jsonResponse, mockApi, renderApp } from '../test/renderApp'
@@ -92,6 +92,24 @@ describe('Panel de merma (HU-25 y HU-26)', () => {
     await vi.waitFor(() => {
       expect(fetchMock.mock.calls.some(([url]) => url.includes('/mermas/resumen') && url.includes('causa=DANIO'))).toBe(true)
     })
+  })
+
+  it('el rango del panel no puede abarcar más de un año', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date('2026-11-11T12:00:00'))
+    mockApi({
+      'GET /api/categorias': () => jsonResponse(categorias),
+      'GET /api/operaciones/mermas/resumen': () => jsonResponse(resumen),
+      'GET /api/operaciones/mermas/comparacion-linea-base': () => jsonResponse({ desde: '2026-11-01', hasta: '2026-11-11', hayLineaBase: false, mermaPeriodo: 0, mensaje: 'Sin línea base.' }),
+    })
+    renderApp('/merma', 'ROLE_DUENO')
+
+    await screen.findByRole('heading', { name: 'Por categoría' })
+    const desde = screen.getByLabelText('Desde')
+    expect(desde).toHaveAttribute('min', '2025-11-11')
+    fireEvent.change(desde, { target: { value: '2020-01-01' } })
+    expect(desde).toHaveValue('2025-11-11')
+    vi.useRealTimers()
   })
 
   it('muestra un aviso cuando no hubo bajas en el período', async () => {

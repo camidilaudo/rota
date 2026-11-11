@@ -19,6 +19,8 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
     @Query("SELECT p FROM Producto p " +
            "WHERE (:query IS NULL OR :query = '' OR " +
            "LOWER(p.nombre) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
-           "p.codigoBarra = :query)")
+           "p.codigoBarra = :query) " +
+           // Primero los productos con la carga (recepción de lote) más reciente; los que no tienen lotes, al final
+           "ORDER BY (SELECT MAX(l.fechaRecepcion) FROM Lote l WHERE l.producto = p) DESC NULLS LAST, p.nombre ASC")
     Page<Producto> buscarPorNombreOCodigo(@Param("query") String query, Pageable pageable);
 }

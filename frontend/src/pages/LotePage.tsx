@@ -251,6 +251,9 @@ function Fila({ label, valor }: { label: string; valor: string }) {
 function EscenariosSeccion({ lote, version }: SeccionProps) {
   const { data, error, loading, reload } = useApi((signal) => compararEscenarios(lote.loteId, signal), [lote.loteId, version])
 
+  // Sin descuento sugerido no hay nada que comparar: el cartel "Sin descuento" sería ruido
+  if (data && data.escenarioConDescuento.porcentajeDescuento === 0) return null
+
   return (
     <Seccion id="escenarios-titulo" titulo="Con descuento o sin descuento">
       {loading && !data ? (

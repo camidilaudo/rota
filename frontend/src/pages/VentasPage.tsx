@@ -102,7 +102,7 @@ export function VentasPage() {
             </InlineAlert>
           )}
           <h2 id="venta-resultado" className="text-lg font-bold">
-            De qué lotes salió
+            Lotes de origen
           </h2>
           <ul className="space-y-2">
             {resultado.lotesAfectados.map((l) => (

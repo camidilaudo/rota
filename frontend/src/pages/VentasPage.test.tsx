@@ -10,7 +10,7 @@ const productos = [
 afterEach(() => vi.unstubAllGlobals())
 
 describe('Ventas (HU-20)', () => {
-  it('registra una venta y muestra de qué lotes salió', async () => {
+  it('registra una venta y muestra los lotes de origen', async () => {
     const fetchMock = mockApi({
       'GET /api/productos': () => jsonResponse(productos),
       'POST /api/operaciones/ventas': () =>
