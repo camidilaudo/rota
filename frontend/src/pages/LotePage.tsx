@@ -1,7 +1,15 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ApiError } from '../api/client'
-import { aplicarDescuento, compararEscenarios, getDescuentoSugerido, getEvaluacionGeneral, getHistorialLote, registrarMerma } from '../api/endpoints'
+import {
+  aplicarDescuento,
+  compararEscenarios,
+  getDescuentoSugerido,
+  getEvaluacionGeneral,
+  getHistorialLote,
+  getVelocidadVentaLote,
+  registrarMerma,
+} from '../api/endpoints'
 import { useAuth } from '../auth/AuthContext'
 import { Button } from '../components/Button'
 import { PageHeader } from '../components/PageHeader'
@@ -9,6 +17,7 @@ import { RiskBadge, UbicacionTag } from '../components/RiskBadge'
 import { SelectField } from '../components/SelectField'
 import { EmptyState, ErrorState, InlineAlert, LoadingList } from '../components/States'
 import { TextField } from '../components/TextField'
+import { VelocidadVentaGrafico } from '../components/VelocidadVentaGrafico'
 import { CAUSA_MERMA_LABEL, describeDaysLeft, formatDate, formatDateTime, formatMoney, formatNumber, formatPercent, formatUnits } from '../format'
 import { errorMessage, useApi } from '../hooks/useApi'
 import type { CausaMerma, DescuentoSugerido, EscenarioProyectado, LoteRiesgo, TipoAccion } from '../types/domain'
@@ -168,6 +177,23 @@ function AplicarDescuentoForm({
       </Button>
       {confirmacion && <InlineAlert kind="success">{confirmacion}</InlineAlert>}
     </form>
+  )
+}
+
+/** Ventas diarias de los últimos días contra la velocidad necesaria para vender el lote antes de vencer. */
+function VelocidadSeccion({ lote, version }: SeccionProps) {
+  const { data, error, loading, reload } = useApi((signal) => getVelocidadVentaLote(lote.loteId, signal), [lote.loteId, version])
+
+  return (
+    <Seccion id="velocidad-titulo" titulo="Velocidad de venta">
+      {loading && !data ? (
+        <LoadingList rows={1} label="Cargando las ventas" />
+      ) : error ? (
+        <ErrorState message={error} onRetry={reload} />
+      ) : data ? (
+        <VelocidadVentaGrafico datos={data} />
+      ) : null}
+    </Seccion>
   )
 }
 
@@ -472,6 +498,7 @@ export function LotePage() {
       ) : (
         <>
           <Resumen lote={lote} isDueno={isDueno} />
+          {lote.cantidad > 0 && <VelocidadSeccion {...props} />}
           {lote.cantidad > 0 && <DescuentoSugeridoSeccion {...props} />}
           {lote.cantidad > 0 && isDueno && <EscenariosSeccion {...props} />}
           {lote.cantidad > 0 && <BajaSeccion {...props} />}

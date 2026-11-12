@@ -2,7 +2,7 @@ import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { jsonResponse, mockApi, renderApp } from '../test/renderApp'
-import type { ComparacionEscenarios, DescuentoSugerido, HistorialAccion, LoteRiesgo } from '../types/domain'
+import type { ComparacionEscenarios, DescuentoSugerido, HistorialAccion, LoteRiesgo, VelocidadVentaLote } from '../types/domain'
 
 const lote: LoteRiesgo = {
   loteId: 5,
@@ -71,7 +71,17 @@ const historial: HistorialAccion[] = [
 
 afterEach(() => vi.unstubAllGlobals())
 
+const velocidad: VelocidadVentaLote = {
+  loteId: 5,
+  cantidad: 30,
+  diasHastaVencimiento: 8,
+  velocidadVentaDiariaActual: 2,
+  velocidadVentaDiariaNecesaria: 3.75,
+  ventasPorDia: Array.from({ length: 14 }, (_, i) => ({ fecha: `2026-11-${String(i + 1).padStart(2, '0')}`, unidades: i % 3 })),
+}
+
 const rutasBase = () => ({
+  'GET /api/operaciones/lotes/5/velocidad-venta': () => jsonResponse(velocidad),
   'GET /api/riesgo/evaluacion-general': () => jsonResponse([lote]),
   'GET /api/operaciones/lotes/5/descuento-sugerido': () => jsonResponse(sugerido),
   'GET /api/operaciones/lotes/5/comparar-escenarios': () => jsonResponse(escenarios),
@@ -79,6 +89,15 @@ const rutasBase = () => ({
 })
 
 describe('Detalle de lote', () => {
+  it('grafica las ventas diarias contra la velocidad necesaria para vender el lote a tiempo', async () => {
+    mockApi(rutasBase())
+    renderApp('/lotes/5', 'ROLE_REPOSITOR')
+
+    const grafico = await screen.findByRole('img', { name: /hacen falta 3,75/ })
+    expect(grafico.querySelectorAll('rect')).toHaveLength(14)
+    expect(screen.getByText('Necesarias por día: 3,75')).toBeInTheDocument()
+  })
+
   it('muestra la cobertura por velocidad de venta (HU-15)', async () => {
     mockApi(rutasBase())
     renderApp('/lotes/5', 'ROLE_DUENO')
