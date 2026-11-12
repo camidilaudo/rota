@@ -98,6 +98,26 @@ describe('Detalle de lote', () => {
     expect(screen.getByText('Con 25% de descuento')).toBeInTheDocument()
   })
 
+  it('la tarjeta con descuento muestra lo que se recupera y deja aplicarlo desde ahí', async () => {
+    const fetchMock = mockApi({
+      ...rutasBase(),
+      'POST /api/operaciones/descuentos': () =>
+        jsonResponse({ loteId: 5, productoNombre: 'Yogur Frutilla 500g', precioOriginal: 900, porcentajeDescuento: 25, precioConDescuento: 675, mensaje: 'Descuento del 25% aplicado correctamente al lote' }),
+    })
+    const user = userEvent.setup()
+    renderApp('/lotes/5', 'ROLE_DUENO')
+
+    const tarjeta = (await screen.findByText('Con 25% de descuento')).closest('div.flex-col') as HTMLElement
+    expect(within(tarjeta).getByText('Recomendado')).toBeInTheDocument()
+    expect(within(tarjeta).getByText('Se recupera')).toBeInTheDocument()
+    expect(within(tarjeta).getByText(/\+12 unidades vendidas/)).toBeInTheDocument()
+
+    await user.click(within(tarjeta).getByRole('button', { name: 'Aplicar 25% al lote' }))
+    expect(await within(tarjeta).findByText(/Descuento del 25% aplicado correctamente/)).toBeInTheDocument()
+    const post = fetchMock.mock.calls.find(([url, init]) => url.includes('/descuentos') && init?.method === 'POST')!
+    expect(JSON.parse(post[1]!.body as string)).toEqual({ loteId: 5, porcentajeDescuento: 25 })
+  })
+
   it('si el descuento sugerido es 0, no se muestra la comparación con/sin descuento', async () => {
     mockApi({
       ...rutasBase(),
