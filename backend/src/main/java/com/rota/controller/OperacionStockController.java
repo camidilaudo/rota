@@ -9,6 +9,7 @@ import com.rota.dto.response.DescuentoSugeridoResponseDTO;
 import com.rota.dto.response.HistorialAccionResponseDTO;
 import com.rota.dto.response.LoteRevisadoResponseDTO;
 import com.rota.dto.response.MermaResponseDTO;
+import com.rota.dto.response.VelocidadVentaLoteResponseDTO;
 import com.rota.dto.response.VentaResponseDTO;
 import com.rota.service.OperacionStockService;
 import jakarta.validation.Valid;
@@ -63,6 +64,12 @@ public class OperacionStockController {
     @GetMapping("/lotes/{loteId}/comparar-escenarios")
     public ResponseEntity<ComparacionEscenariosResponseDTO> compararEscenarios(@PathVariable Long loteId) {
         return ResponseEntity.ok(operacionStockService.compararEscenarios(loteId));
+    }
+
+    // Gráfico del lote: ventas diarias del producto contra la velocidad necesaria para agotarlo a tiempo
+    @GetMapping("/lotes/{loteId}/velocidad-venta")
+    public ResponseEntity<VelocidadVentaLoteResponseDTO> obtenerVelocidadVenta(@PathVariable Long loteId) {
+        return ResponseEntity.ok(operacionStockService.obtenerVelocidadVentaLote(loteId));
     }
 
     // HU-22: historial de acciones (descuentos, traslados, bajas) tomadas sobre un lote

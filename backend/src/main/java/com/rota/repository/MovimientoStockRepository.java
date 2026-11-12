@@ -1,6 +1,7 @@
 package com.rota.repository;
 
 import com.rota.entity.MovimientoStock;
+import com.rota.entity.TipoMovimiento;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -15,4 +16,7 @@ public interface MovimientoStockRepository extends JpaRepository<MovimientoStock
            "WHERE m.tipo = com.rota.entity.TipoMovimiento.VENTA " +
            "AND m.lote.producto.id = :productoId AND m.fechaHora >= :desde")
     Integer sumarVentasPorProductoDesde(@Param("productoId") Long productoId, @Param("desde") LocalDateTime desde);
+
+    // Gráfico de velocidad de venta: movimientos de un tipo para un producto desde una fecha (se agrupan por día en el servicio)
+    List<MovimientoStock> findByTipoAndLote_Producto_IdAndFechaHoraGreaterThanEqual(TipoMovimiento tipo, Long productoId, LocalDateTime desde);
 }
