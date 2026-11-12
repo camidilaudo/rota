@@ -18,6 +18,7 @@ describe('Línea base de merma (HU-26)', () => {
 
     const campo = await screen.findByLabelText('Merma mensual antes de Rotá ($)')
     expect(campo).toHaveValue('')
+    expect(screen.getByText(/merma de los últimos 12 meses/)).toBeInTheDocument()
     await user.type(campo, '45000')
     await user.click(within(campo.closest('form')!).getByRole('button', { name: 'Guardar' }))
 

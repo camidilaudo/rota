@@ -43,7 +43,7 @@ function Formulario({ comercio, onGuardado }: { comercio: Comercio; onGuardado: 
         value={valor}
         onChange={(e) => setValor(e.target.value.replace(/[^\d.,]/g, ''))}
         error={error ?? undefined}
-        hint="Lo que se perdía por mes a valor costo. Es la referencia para medir el ahorro en el panel de merma."
+        hint="Promedio mensual de la merma de los últimos 12 meses antes de usar Rotá, a valor costo. Es la referencia para medir el ahorro en el panel de merma."
       />
       <Button type="submit" loading={guardando}>
         {guardando ? 'Guardando' : 'Guardar'}
