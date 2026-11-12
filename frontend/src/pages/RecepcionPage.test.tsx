@@ -1,7 +1,7 @@
 import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { jsonResponse, mockApi, renderApp } from '../test/renderApp'
+import { callsSinCampana, jsonResponse, mockApi, renderApp } from '../test/renderApp'
 import type { Producto } from '../types/domain'
 
 const leche: Producto = {
@@ -54,9 +54,9 @@ describe('Recepción de lote', () => {
     await screen.findByText('Leche Entera 1L')
     await user.click(screen.getByRole('button', { name: 'Registrar lote' }))
 
-    expect(screen.getByText('Elegí la fecha de vencimiento.')).toBeInTheDocument()
-    expect(screen.getByText('Ingresá una cantidad de al menos 1.')).toBeInTheDocument()
-    expect(fetchMock).toHaveBeenCalledTimes(1)
+    expect(screen.getByText('Elegir la fecha de vencimiento.')).toBeInTheDocument()
+    expect(screen.getByText('Ingresar una cantidad de al menos 1.')).toBeInTheDocument()
+    expect(callsSinCampana(fetchMock)).toHaveLength(1)
   })
 
   it('si el código no existe, el repositor no puede crear el producto', async () => {
@@ -87,7 +87,7 @@ describe('Recepción de lote', () => {
     await user.selectOptions(await screen.findByLabelText('Categoría'), 'Lácteos')
     await user.click(screen.getByRole('button', { name: 'Crear producto' }))
 
-    expect(await screen.findByText('Producto creado. Ahora cargá el lote.')).toBeInTheDocument()
+    expect(await screen.findByText('Producto creado. Ahora cargar el lote.')).toBeInTheDocument()
     expect(screen.getByText('Manteca 200g')).toBeInTheDocument()
     const post = fetchMock.mock.calls.find(([u, init]) => u === '/api/productos' && init?.method === 'POST')!
     expect(JSON.parse(String(post[1]!.body))).toEqual({ codigoBarra: '123', nombre: 'Manteca 200g', precioVenta: 1500, costo: 900, categoriaId: 1 })

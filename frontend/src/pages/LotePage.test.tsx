@@ -2,7 +2,7 @@ import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { jsonResponse, mockApi, renderApp } from '../test/renderApp'
-import type { ComparacionEscenarios, DescuentoSugerido, HistorialAccion, LoteRiesgo } from '../types/domain'
+import type { ComparacionEscenarios, DescuentoSugerido, HistorialAccion, LoteRiesgo, VelocidadVentaLote } from '../types/domain'
 
 const lote: LoteRiesgo = {
   loteId: 5,
@@ -71,7 +71,17 @@ const historial: HistorialAccion[] = [
 
 afterEach(() => vi.unstubAllGlobals())
 
+const velocidad: VelocidadVentaLote = {
+  loteId: 5,
+  cantidad: 30,
+  diasHastaVencimiento: 8,
+  velocidadVentaDiariaActual: 2,
+  velocidadVentaDiariaNecesaria: 3.75,
+  ventasPorDia: Array.from({ length: 14 }, (_, i) => ({ fecha: `2026-11-${String(i + 1).padStart(2, '0')}`, unidades: i % 3 })),
+}
+
 const rutasBase = () => ({
+  'GET /api/operaciones/lotes/5/velocidad-venta': () => jsonResponse(velocidad),
   'GET /api/riesgo/evaluacion-general': () => jsonResponse([lote]),
   'GET /api/operaciones/lotes/5/descuento-sugerido': () => jsonResponse(sugerido),
   'GET /api/operaciones/lotes/5/comparar-escenarios': () => jsonResponse(escenarios),
@@ -79,6 +89,15 @@ const rutasBase = () => ({
 })
 
 describe('Detalle de lote', () => {
+  it('grafica las ventas diarias contra la velocidad necesaria para vender el lote a tiempo', async () => {
+    mockApi(rutasBase())
+    renderApp('/lotes/5', 'ROLE_REPOSITOR')
+
+    const grafico = await screen.findByRole('img', { name: /hacen falta 3,75/ })
+    expect(grafico.querySelectorAll('rect')).toHaveLength(14)
+    expect(screen.getByText('Necesarias por día: 3,75')).toBeInTheDocument()
+  })
+
   it('muestra la cobertura por velocidad de venta (HU-15)', async () => {
     mockApi(rutasBase())
     renderApp('/lotes/5', 'ROLE_DUENO')
@@ -96,6 +115,26 @@ describe('Detalle de lote', () => {
     expect(screen.getByText(/perfora el piso de margen/)).toBeInTheDocument()
     expect(await screen.findByText('Conviene aplicar el descuento: deja más margen.')).toBeInTheDocument()
     expect(screen.getByText('Con 25% de descuento')).toBeInTheDocument()
+  })
+
+  it('la tarjeta con descuento muestra lo que se recupera y deja aplicarlo desde ahí', async () => {
+    const fetchMock = mockApi({
+      ...rutasBase(),
+      'POST /api/operaciones/descuentos': () =>
+        jsonResponse({ loteId: 5, productoNombre: 'Yogur Frutilla 500g', precioOriginal: 900, porcentajeDescuento: 25, precioConDescuento: 675, mensaje: 'Descuento del 25% aplicado correctamente al lote' }),
+    })
+    const user = userEvent.setup()
+    renderApp('/lotes/5', 'ROLE_DUENO')
+
+    const tarjeta = (await screen.findByText('Con 25% de descuento')).closest('div.flex-col') as HTMLElement
+    expect(within(tarjeta).getByText('Recomendado')).toBeInTheDocument()
+    expect(within(tarjeta).getByText('Se recupera')).toBeInTheDocument()
+    expect(within(tarjeta).getByText(/\+12 unidades vendidas/)).toBeInTheDocument()
+
+    await user.click(within(tarjeta).getByRole('button', { name: 'Aplicar 25% al lote' }))
+    expect(await within(tarjeta).findByText(/Descuento del 25% aplicado correctamente/)).toBeInTheDocument()
+    const post = fetchMock.mock.calls.find(([url, init]) => url.includes('/descuentos') && init?.method === 'POST')!
+    expect(JSON.parse(post[1]!.body as string)).toEqual({ loteId: 5, porcentajeDescuento: 25 })
   })
 
   it('si el descuento sugerido es 0, no se muestra la comparación con/sin descuento', async () => {
@@ -156,7 +195,7 @@ describe('Detalle de lote', () => {
     await user.type(campo, '95')
     await user.click(screen.getByRole('button', { name: 'Aplicar descuento al lote' }))
 
-    expect(screen.getByText('Ingresá un descuento entre 5% y 90%.')).toBeInTheDocument()
+    expect(screen.getByText('Ingresar un descuento entre 5% y 90%.')).toBeInTheDocument()
     expect(fetchMock.mock.calls.some(([, init]) => init?.method === 'POST')).toBe(false)
   })
 
@@ -212,7 +251,7 @@ describe('Detalle de lote', () => {
     await screen.findByText('Dar de baja unidades')
     await user.click(screen.getByRole('button', { name: 'Dar de baja' }))
 
-    expect(screen.getByText('Elegí la causa de la baja.')).toBeInTheDocument()
+    expect(screen.getByText('Elegir la causa de la baja.')).toBeInTheDocument()
     expect(fetchMock.mock.calls.some(([, init]) => init?.method === 'POST')).toBe(false)
   })
 
@@ -220,6 +259,6 @@ describe('Detalle de lote', () => {
     mockApi({ 'GET /api/riesgo/evaluacion-general': () => jsonResponse([lote]) })
     renderApp('/lotes/99', 'ROLE_DUENO')
 
-    expect(await screen.findByText('No encontramos este lote')).toBeInTheDocument()
+    expect(await screen.findByText('No se encontró este lote')).toBeInTheDocument()
   })
 })

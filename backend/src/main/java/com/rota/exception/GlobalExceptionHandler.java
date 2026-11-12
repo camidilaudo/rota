@@ -157,7 +157,7 @@ public class GlobalExceptionHandler {
                 .timestamp(LocalDateTime.now())
                 .status(HttpStatus.FORBIDDEN.value())
                 .error(HttpStatus.FORBIDDEN.getReasonPhrase())
-                .message("No tenés permiso para esta acción")
+                .message("Sin permiso para esta acción")
                 .path(request.getRequestURI())
                 .build();
 

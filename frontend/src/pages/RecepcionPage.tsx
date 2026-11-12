@@ -91,7 +91,7 @@ function PasoCodigo({ onEncontrado, onNoExiste }: { onEncontrado: (p: Producto) 
     e.preventDefault()
     const limpio = codigo.trim()
     if (!limpio) {
-      setError('Ingresá el código de barras.')
+      setError('Ingresar el código de barras.')
       return
     }
     void buscarCodigo(limpio)
@@ -189,10 +189,10 @@ function PasoProductoNuevo({
   async function guardar(e: FormEvent) {
     e.preventDefault()
     const errs: Errores = {}
-    if (!form.nombre.trim()) errs.nombre = 'Ingresá el nombre.'
-    if (!(Number(form.precioVenta) > 0)) errs.precioVenta = 'Ingresá un precio mayor a 0.'
-    if (form.costo === '' || Number(form.costo) < 0) errs.costo = 'Ingresá el costo.'
-    if (!form.categoriaId) errs.categoriaId = 'Elegí una categoría.'
+    if (!form.nombre.trim()) errs.nombre = 'Ingresar el nombre.'
+    if (!(Number(form.precioVenta) > 0)) errs.precioVenta = 'Ingresar un precio mayor a 0.'
+    if (form.costo === '' || Number(form.costo) < 0) errs.costo = 'Ingresar el costo.'
+    if (!form.categoriaId) errs.categoriaId = 'Elegir una categoría.'
     setErrores(errs)
     setFormError(null)
     if (Object.keys(errs).length) return
@@ -216,9 +216,9 @@ function PasoProductoNuevo({
 
   return (
     <form noValidate onSubmit={guardar} className="space-y-4">
-      <InlineAlert kind="info">El código {codigo} no está cargado. Completá los datos para crear el producto.</InlineAlert>
+      <InlineAlert kind="info">El código {codigo} no está cargado. Completar los datos para crear el producto.</InlineAlert>
       {formError && <InlineAlert kind="error">{formError}</InlineAlert>}
-      {cargaError && <InlineAlert kind="error">No pudimos cargar las categorías. {cargaError}</InlineAlert>}
+      {cargaError && <InlineAlert kind="error">No se pudieron cargar las categorías. {cargaError}</InlineAlert>}
       <TextField label="Nombre del producto" value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} error={errores.nombre} />
       <div className="grid grid-cols-2 gap-3">
         <TextField
@@ -243,7 +243,7 @@ function PasoProductoNuevo({
         error={errores.categoriaId}
         disabled={!categorias}
       >
-        <option value="">{categorias ? 'Elegí una categoría' : 'Cargando categorías'}</option>
+        <option value="">{categorias ? 'Elegir una categoría' : 'Cargando categorías'}</option>
         {categorias?.map((c) => (
           <option key={c.id} value={c.id}>
             {c.nombre}
@@ -276,10 +276,10 @@ function PasoLote({ producto, onRegistrado, onCambiar }: { producto: Producto; o
   async function guardar(e: FormEvent) {
     e.preventDefault()
     const errs: Errores = {}
-    if (!fecha) errs.fechaVencimiento = 'Elegí la fecha de vencimiento.'
+    if (!fecha) errs.fechaVencimiento = 'Elegir la fecha de vencimiento.'
     else if (fecha < todayIso()) errs.fechaVencimiento = 'No se pueden cargar productos vencidos.'
     const n = Number(cantidad)
-    if (!Number.isInteger(n) || n < 1) errs.cantidad = 'Ingresá una cantidad de al menos 1.'
+    if (!Number.isInteger(n) || n < 1) errs.cantidad = 'Ingresar una cantidad de al menos 1.'
     setErrores(errs)
     setFormError(null)
     if (Object.keys(errs).length) return
@@ -343,7 +343,7 @@ export function RecepcionPage() {
 
   return (
     <section className="max-w-xl">
-      <PageHeader title="Recepción" description="Cargá un lote que llega: código, vencimiento, cantidad y ubicación." />
+      <PageHeader title="Recepción" description="Cargar un lote que llega: código, vencimiento, cantidad y ubicación." />
 
       {paso === 'codigo' && (
         <PasoCodigo
@@ -373,7 +373,7 @@ export function RecepcionPage() {
 
       {paso === 'lote' && producto && (
         <div className="space-y-4">
-          {productoCreado && <InlineAlert kind="success">Producto creado. Ahora cargá el lote.</InlineAlert>}
+          {productoCreado && <InlineAlert kind="success">Producto creado. Ahora cargar el lote.</InlineAlert>}
           <PasoLote
             producto={producto}
             onCambiar={reiniciar}

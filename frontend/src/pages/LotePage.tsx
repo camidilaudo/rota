@@ -1,7 +1,15 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ApiError } from '../api/client'
-import { aplicarDescuento, compararEscenarios, getDescuentoSugerido, getEvaluacionGeneral, getHistorialLote, registrarMerma } from '../api/endpoints'
+import {
+  aplicarDescuento,
+  compararEscenarios,
+  getDescuentoSugerido,
+  getEvaluacionGeneral,
+  getHistorialLote,
+  getVelocidadVentaLote,
+  registrarMerma,
+} from '../api/endpoints'
 import { useAuth } from '../auth/AuthContext'
 import { Button } from '../components/Button'
 import { PageHeader } from '../components/PageHeader'
@@ -9,6 +17,7 @@ import { RiskBadge, UbicacionTag } from '../components/RiskBadge'
 import { SelectField } from '../components/SelectField'
 import { EmptyState, ErrorState, InlineAlert, LoadingList } from '../components/States'
 import { TextField } from '../components/TextField'
+import { VelocidadVentaGrafico } from '../components/VelocidadVentaGrafico'
 import { CAUSA_MERMA_LABEL, describeDaysLeft, formatDate, formatDateTime, formatMoney, formatNumber, formatPercent, formatUnits } from '../format'
 import { errorMessage, useApi } from '../hooks/useApi'
 import type { CausaMerma, DescuentoSugerido, EscenarioProyectado, LoteRiesgo, TipoAccion } from '../types/domain'
@@ -134,7 +143,7 @@ function AplicarDescuentoForm({
     e.preventDefault()
     const n = Number(porcentaje.replace(',', '.'))
     if (!Number.isFinite(n) || n < DESCUENTO_MIN || n > DESCUENTO_MAX) {
-      return setError(`Ingresá un descuento entre ${DESCUENTO_MIN}% y ${DESCUENTO_MAX}%.`)
+      return setError(`Ingresar un descuento entre ${DESCUENTO_MIN}% y ${DESCUENTO_MAX}%.`)
     }
     setError(null)
     setFormError(null)
@@ -171,6 +180,23 @@ function AplicarDescuentoForm({
   )
 }
 
+/** Ventas diarias de los últimos días contra la velocidad necesaria para vender el lote antes de vencer. */
+function VelocidadSeccion({ lote, version }: SeccionProps) {
+  const { data, error, loading, reload } = useApi((signal) => getVelocidadVentaLote(lote.loteId, signal), [lote.loteId, version])
+
+  return (
+    <Seccion id="velocidad-titulo" titulo="Velocidad de venta">
+      {loading && !data ? (
+        <LoadingList rows={1} label="Cargando las ventas" />
+      ) : error ? (
+        <ErrorState message={error} onRetry={reload} />
+      ) : data ? (
+        <VelocidadVentaGrafico datos={data} />
+      ) : null}
+    </Seccion>
+  )
+}
+
 /** HU-17 y HU-19: descuento que liquida el lote a tiempo, topeado por el piso de margen del comercio. */
 function DescuentoSugeridoSeccion({ lote, version, isDueno, onCambio }: SeccionProps) {
   const [confirmacion, setConfirmacion] = useState<string | null>(null)
@@ -202,7 +228,7 @@ function DescuentoSugeridoSeccion({ lote, version, isDueno, onCambio }: SeccionP
             <InlineAlert kind="info">
               {isDueno
                 ? `Para vender todo a tiempo hacía falta ${formatPercent(data.porcentajeDescuentoSugerido)}, pero eso perfora el piso de margen. Se recomienda el tope y puede quedar stock sin vender.`
-                : 'Con el límite de descuento del comercio puede quedar stock sin vender. Consultá con el dueño.'}
+                : 'Con el límite de descuento del comercio puede quedar stock sin vender. Consultar con el dueño.'}
             </InlineAlert>
           )}
           <AplicarDescuentoForm
@@ -219,11 +245,28 @@ function DescuentoSugeridoSeccion({ lote, version, isDueno, onCambio }: SeccionP
   )
 }
 
-function Escenario({ titulo, e, destacado }: { titulo: string; e: EscenarioProyectado; destacado: boolean }) {
+function Escenario({
+  titulo,
+  e,
+  destacado,
+  children,
+}: {
+  titulo: string
+  e: EscenarioProyectado
+  destacado: boolean
+  children?: React.ReactNode
+}) {
   return (
-    <div className={`rounded-2xl border bg-card p-4 ${destacado ? 'border-2 border-primary' : 'border-border'}`}>
-      <p className="font-heading text-lg font-semibold">{titulo}</p>
-      <dl className="mt-2 space-y-1.5 text-sm">
+    <div className={`flex flex-col rounded-2xl border bg-card p-4 ${destacado ? 'border-2 border-primary' : 'border-border'}`}>
+      <div className="flex items-start justify-between gap-2">
+        <p className="font-heading text-lg font-semibold">{titulo}</p>
+        {destacado && <span className="rounded-full bg-primary/15 px-2.5 py-0.5 text-xs font-bold text-primary-strong">Recomendado</span>}
+      </div>
+      <p className={`mt-1 font-heading text-4xl font-bold ${destacado ? 'text-primary-strong' : 'text-muted-foreground'}`}>
+        {formatPercent(e.porcentajeDescuento)}
+        <span className="ml-1.5 text-sm font-semibold text-muted-foreground">de descuento</span>
+      </p>
+      <dl className="mt-3 space-y-1.5 text-sm">
         <Fila label="Precio final" valor={formatMoney(e.precioFinal)} />
         <Fila label="Se venden" valor={formatUnits(e.unidadesEstimadasVendidas)} />
         <Fila label="Se descartan" valor={formatUnits(e.unidadesEstimadasDescartadas)} />
@@ -234,6 +277,7 @@ function Escenario({ titulo, e, destacado }: { titulo: string; e: EscenarioProye
           <dd>{formatMoney(e.margenTotalProyectado)}</dd>
         </div>
       </dl>
+      {children}
     </div>
   )
 }
@@ -247,8 +291,52 @@ function Fila({ label, valor }: { label: string; valor: string }) {
   )
 }
 
+/** Lo que cambia al aplicar el descuento: unidades que se venden de más y margen que se gana o se pierde. */
+function Recuperado({ sin, con }: { sin: EscenarioProyectado; con: EscenarioProyectado }) {
+  const unidades = con.unidadesEstimadasVendidas - sin.unidadesEstimadasVendidas
+  const pesos = con.margenTotalProyectado - sin.margenTotalProyectado
+  const conviene = pesos > 0
+  return (
+    <div className={`mt-3 rounded-xl px-3 py-2.5 text-sm ${conviene ? 'bg-emerald-50 text-emerald-900' : 'bg-muted text-foreground'}`}>
+      <p className="font-bold">{conviene ? 'Se recupera' : 'Frente a no descontar'}</p>
+      <p>
+        {unidades > 0 ? `+${formatUnits(unidades)} vendidas` : 'Las mismas unidades vendidas'} ·{' '}
+        {conviene ? `+${formatMoney(pesos)} de margen` : `${formatMoney(Math.abs(pesos))} menos de margen`}
+      </p>
+    </div>
+  )
+}
+
+function AplicarEscenario({ lote, porcentaje, onCambio }: { lote: LoteRiesgo; porcentaje: number; onCambio: () => void }) {
+  const [guardando, setGuardando] = useState(false)
+  const [mensaje, setMensaje] = useState<{ kind: 'success' | 'error'; texto: string } | null>(null)
+
+  async function aplicar() {
+    setGuardando(true)
+    setMensaje(null)
+    try {
+      const r = await aplicarDescuento({ loteId: lote.loteId, porcentajeDescuento: porcentaje })
+      setMensaje({ kind: 'success', texto: `${r.mensaje}. Precio con descuento: ${formatMoney(r.precioConDescuento)}.` })
+      onCambio()
+    } catch (err) {
+      setMensaje({ kind: 'error', texto: errorMessage(err) })
+    } finally {
+      setGuardando(false)
+    }
+  }
+
+  return (
+    <div className="mt-3 space-y-2">
+      <Button fullWidth loading={guardando} onClick={aplicar}>
+        {guardando ? 'Aplicando' : `Aplicar ${formatPercent(porcentaje)} al lote`}
+      </Button>
+      {mensaje && <InlineAlert kind={mensaje.kind}>{mensaje.texto}</InlineAlert>}
+    </div>
+  )
+}
+
 /** HU-18: margen proyectado con y sin descuento. Solo el dueño, porque muestra márgenes y costos. */
-function EscenariosSeccion({ lote, version }: SeccionProps) {
+function EscenariosSeccion({ lote, version, onCambio }: SeccionProps) {
   const { data, error, loading, reload } = useApi((signal) => compararEscenarios(lote.loteId, signal), [lote.loteId, version])
 
   // Sin descuento sugerido no hay nada que comparar: el cartel "Sin descuento" sería ruido
@@ -265,13 +353,16 @@ function EscenariosSeccion({ lote, version }: SeccionProps) {
           <InlineAlert kind="info">
             {data.recomendacion === 'CON_DESCUENTO' ? 'Conviene aplicar el descuento: deja más margen.' : 'Conviene no aplicar descuento: deja más margen.'}
           </InlineAlert>
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <Escenario titulo="Sin descuento" e={data.escenarioSinDescuento} destacado={data.recomendacion === 'SIN_DESCUENTO'} />
             <Escenario
               titulo={`Con ${formatPercent(data.escenarioConDescuento.porcentajeDescuento)} de descuento`}
               e={data.escenarioConDescuento}
               destacado={data.recomendacion === 'CON_DESCUENTO'}
-            />
+            >
+              <Recuperado sin={data.escenarioSinDescuento} con={data.escenarioConDescuento} />
+              <AplicarEscenario lote={lote} porcentaje={data.escenarioConDescuento.porcentajeDescuento} onCambio={onCambio} />
+            </Escenario>
           </div>
         </div>
       ) : null}
@@ -293,10 +384,10 @@ function BajaSeccion({ lote, onCambio }: SeccionProps) {
   async function dar(e: FormEvent) {
     e.preventDefault()
     const n = Number(cantidad)
-    if (!Number.isInteger(n) || n < 1) return setError('Ingresá al menos 1 unidad.')
+    if (!Number.isInteger(n) || n < 1) return setError('Ingresar al menos 1 unidad.')
     if (n > lote.cantidad) return setError(`El lote tiene ${formatUnits(lote.cantidad)}.`)
     setError(null)
-    if (!causa) return setErrorCausa('Elegí la causa de la baja.')
+    if (!causa) return setErrorCausa('Elegir la causa de la baja.')
     setErrorCausa(null)
     setFormError(null)
     setConfirmacion(null)
@@ -326,7 +417,7 @@ function BajaSeccion({ lote, onCambio }: SeccionProps) {
           error={error ?? undefined}
         />
         <SelectField label="Causa" value={causa} onChange={(e) => setCausa(e.target.value as CausaMerma | '')} error={errorCausa ?? undefined}>
-          <option value="">Elegí la causa</option>
+          <option value="">Elegir la causa</option>
           {CAUSAS_BAJA.map(([valor, etiqueta]) => (
             <option key={valor} value={valor}>
               {etiqueta}
@@ -403,10 +494,11 @@ export function LotePage() {
       ) : evaluacion.error ? (
         <ErrorState message={evaluacion.error} onRetry={evaluacion.reload} />
       ) : !lote || !props ? (
-        <EmptyState title="No encontramos este lote">Puede que ya no exista o que el enlace sea incorrecto.</EmptyState>
+        <EmptyState title="No se encontró este lote">Puede que ya no exista o que el enlace sea incorrecto.</EmptyState>
       ) : (
         <>
           <Resumen lote={lote} isDueno={isDueno} />
+          {lote.cantidad > 0 && <VelocidadSeccion {...props} />}
           {lote.cantidad > 0 && <DescuentoSugeridoSeccion {...props} />}
           {lote.cantidad > 0 && isDueno && <EscenariosSeccion {...props} />}
           {lote.cantidad > 0 && <BajaSeccion {...props} />}

@@ -45,3 +45,8 @@ export function mockApi(routes: Record<string, Handler>) {
   vi.stubGlobal('fetch', fn)
   return fn
 }
+
+/** Llamadas a fetch sin contar la consulta de alertas que hace la campana del encabezado. */
+export function callsSinCampana(fn: ReturnType<typeof mockApi>) {
+  return fn.mock.calls.filter(([url]) => !url.startsWith('/api/rotacion/alertas-rotacion'))
+}

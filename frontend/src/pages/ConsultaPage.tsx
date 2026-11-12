@@ -113,7 +113,7 @@ export function ConsultaPage() {
 
   return (
     <section className="max-w-3xl">
-      <PageHeader title="Consulta" description="Buscá un producto por nombre o código y mirá sus lotes activos." />
+      <PageHeader title="Consulta" description="Buscar un producto por nombre o código y ver sus lotes activos." />
 
       <form role="search" onSubmit={buscarYa} className="mb-5">
         <Button variant="secondary" fullWidth onClick={() => setEscaneando(true)} className="mb-4">
@@ -140,13 +140,13 @@ export function ConsultaPage() {
       </form>
 
       {!query ? (
-        <EmptyState title="Buscá un producto">Escribí parte del nombre o el código de barras.</EmptyState>
+        <EmptyState title="Buscar producto">Escribir parte del nombre o el código de barras.</EmptyState>
       ) : error ? (
         <ErrorState message={error} onRetry={() => setIntento((i) => i + 1)} />
       ) : cargando && pagina === 0 ? (
         <LoadingList rows={2} label="Buscando" />
       ) : resultados.length === 0 ? (
-        <EmptyState title="Sin resultados">No encontramos productos para "{query}".</EmptyState>
+        <EmptyState title="Sin resultados">No se encontraron productos para "{query}".</EmptyState>
       ) : (
         <div className="space-y-4">
           <p aria-live="polite" className="text-sm font-semibold text-muted-foreground">

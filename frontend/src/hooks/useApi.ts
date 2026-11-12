@@ -28,7 +28,7 @@ export function useApi<T>(fetcher: (signal: AbortSignal) => Promise<T>, deps: re
       })
       .catch((err: unknown) => {
         if (controller.signal.aborted) return
-        setError(err instanceof ApiError ? err.message : 'Algo salió mal. Intentá de nuevo.')
+        setError(err instanceof ApiError ? err.message : 'Algo salió mal. Intentar de nuevo.')
       })
       .finally(() => {
         if (!controller.signal.aborted) setLoading(false)
@@ -43,5 +43,5 @@ export function useApi<T>(fetcher: (signal: AbortSignal) => Promise<T>, deps: re
 }
 
 export function errorMessage(err: unknown): string {
-  return err instanceof ApiError ? err.message : 'Algo salió mal. Intentá de nuevo.'
+  return err instanceof ApiError ? err.message : 'Algo salió mal. Intentar de nuevo.'
 }

@@ -81,7 +81,7 @@ describe('Configuración', () => {
     await user.type(within(form).getByLabelText('Email'), 'ana@comercio.com')
     await user.type(within(form).getByLabelText('Contraseña inicial'), '123')
     await user.click(within(form).getByRole('button', { name: 'Crear usuario' }))
-    expect(screen.getByText('Usá al menos 6 caracteres.')).toBeInTheDocument()
+    expect(screen.getByText('Usar al menos 6 caracteres.')).toBeInTheDocument()
 
     await user.type(within(form).getByLabelText('Contraseña inicial'), '456')
     await user.click(within(form).getByRole('button', { name: 'Crear usuario' }))

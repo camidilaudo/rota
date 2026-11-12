@@ -139,6 +139,16 @@ export interface VentaRegistrada {
   mensaje: string
 }
 
+/** VelocidadVentaLoteResponseDTO: ventas diarias del producto contra la velocidad necesaria */
+export interface VelocidadVentaLote {
+  loteId: number
+  cantidad: number
+  diasHastaVencimiento: number
+  velocidadVentaDiariaActual: number
+  velocidadVentaDiariaNecesaria: number | null
+  ventasPorDia: { fecha: string; unidades: number }[]
+}
+
 /** DescuentoSugeridoResponseDTO (HU-17 y HU-19) */
 export interface DescuentoSugerido {
   loteId: number

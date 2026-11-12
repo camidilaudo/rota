@@ -58,7 +58,7 @@ function ComparacionCard({ c }: { c: ComparacionLineaBase }) {
       <InlineAlert kind="info">
         {c.mensaje}{' '}
         <Link to="/configuracion" className="underline">
-          Cargala en Configuración
+          Cargarla en Configuración
         </Link>
         .
       </InlineAlert>

@@ -17,7 +17,7 @@ function Formulario({ comercio, onGuardado }: { comercio: Comercio; onGuardado: 
   async function guardar(e: FormEvent) {
     e.preventDefault()
     const n = Number(valor.replace(',', '.'))
-    if (valor.trim() === '' || !Number.isFinite(n) || n < 0) return setError('Ingresá un monto mayor o igual a 0.')
+    if (valor.trim() === '' || !Number.isFinite(n) || n < 0) return setError('Ingresar un monto mayor o igual a 0.')
     setError(null)
     setFormError(null)
     setAviso(null)
@@ -43,7 +43,7 @@ function Formulario({ comercio, onGuardado }: { comercio: Comercio; onGuardado: 
         value={valor}
         onChange={(e) => setValor(e.target.value.replace(/[^\d.,]/g, ''))}
         error={error ?? undefined}
-        hint="Lo que se perdía por mes a valor costo. Es la referencia para medir el ahorro en el panel de merma."
+        hint="Promedio mensual de la merma de los últimos 12 meses antes de usar Rotá, a valor costo. Es la referencia para medir el ahorro en el panel de merma."
       />
       <Button type="submit" loading={guardando}>
         {guardando ? 'Guardando' : 'Guardar'}
