@@ -16,9 +16,9 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 function validate(email: string, password: string): FieldErrors {
   const errors: FieldErrors = {}
-  if (!email.trim()) errors.email = 'Ingresá tu email.'
-  else if (!EMAIL_PATTERN.test(email.trim())) errors.email = 'Revisá el formato del email.'
-  if (!password) errors.password = 'Ingresá tu contraseña.'
+  if (!email.trim()) errors.email = 'Ingresar el email.'
+  else if (!EMAIL_PATTERN.test(email.trim())) errors.email = 'Revisar el formato del email.'
+  if (!password) errors.password = 'Ingresar la contraseña.'
   return errors
 }
 
@@ -26,7 +26,7 @@ function loginErrorMessage(err: unknown): string {
   if (err instanceof ApiError && err.isNetworkError) return err.message
   if (err instanceof ApiError && err.status === 401) return 'Email o contraseña incorrectos.'
   // Sin DEF-01 el backend responde 500 ante credenciales inválidas.
-  return 'No pudimos iniciar sesión. Revisá el email y la contraseña.'
+  return 'No se pudo iniciar sesión. Revisar el email y la contraseña.'
 }
 
 export function LoginPage() {
@@ -67,7 +67,7 @@ export function LoginPage() {
         <div className="mb-8 flex flex-col items-center text-center">
           <BrandMark size="lg" />
           <h1 className="mt-4 text-3xl font-bold">Rotá</h1>
-          <p className="mt-1 text-muted-foreground">Controlá lotes y vencimientos de tu comercio.</p>
+          <p className="mt-1 text-muted-foreground">Control de lotes y vencimientos del comercio.</p>
         </div>
 
         <form
@@ -84,7 +84,7 @@ export function LoginPage() {
               </p>
             ) : sessionExpired ? (
               <p className="rounded-xl bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-900">
-                Tu sesión se cerró. Ingresá de nuevo para seguir.
+                La sesión se cerró. Es necesario ingresar de nuevo.
               </p>
             ) : null}
           </div>

@@ -66,7 +66,7 @@ export function MedicionEscaneoPage() {
 
       {mediciones.length === 0 ? (
         <EmptyState title="Todavía no hay mediciones">
-          Escaneá productos desde <Link to="/recepcion" className="font-semibold text-primary-strong underline">Recepción</Link>. Cada escaneo se registra
+          Escanear productos desde <Link to="/recepcion" className="font-semibold text-primary-strong underline">Recepción</Link>. Cada escaneo se registra
           acá.
         </EmptyState>
       ) : (

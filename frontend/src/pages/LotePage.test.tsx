@@ -156,7 +156,7 @@ describe('Detalle de lote', () => {
     await user.type(campo, '95')
     await user.click(screen.getByRole('button', { name: 'Aplicar descuento al lote' }))
 
-    expect(screen.getByText('Ingresá un descuento entre 5% y 90%.')).toBeInTheDocument()
+    expect(screen.getByText('Ingresar un descuento entre 5% y 90%.')).toBeInTheDocument()
     expect(fetchMock.mock.calls.some(([, init]) => init?.method === 'POST')).toBe(false)
   })
 
@@ -212,7 +212,7 @@ describe('Detalle de lote', () => {
     await screen.findByText('Dar de baja unidades')
     await user.click(screen.getByRole('button', { name: 'Dar de baja' }))
 
-    expect(screen.getByText('Elegí la causa de la baja.')).toBeInTheDocument()
+    expect(screen.getByText('Elegir la causa de la baja.')).toBeInTheDocument()
     expect(fetchMock.mock.calls.some(([, init]) => init?.method === 'POST')).toBe(false)
   })
 
@@ -220,6 +220,6 @@ describe('Detalle de lote', () => {
     mockApi({ 'GET /api/riesgo/evaluacion-general': () => jsonResponse([lote]) })
     renderApp('/lotes/99', 'ROLE_DUENO')
 
-    expect(await screen.findByText('No encontramos este lote')).toBeInTheDocument()
+    expect(await screen.findByText('No se encontró este lote')).toBeInTheDocument()
   })
 })

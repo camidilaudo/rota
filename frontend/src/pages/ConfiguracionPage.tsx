@@ -50,7 +50,7 @@ function EditarCategoria({ categoria, onGuardada, onCancelar }: { categoria: Cat
   async function guardar(e: FormEvent) {
     e.preventDefault()
     const n = Number(critico)
-    if (!Number.isInteger(n) || n < 1) return setError('Ingresá al menos 1 día.')
+    if (!Number.isInteger(n) || n < 1) return setError('Ingresar al menos 1 día.')
     if (n > categoria.diasUmbralAlerta) return setError(`No puede superar el umbral de alerta (${dias(categoria.diasUmbralAlerta)}).`)
     setError(null)
     setFormError(null)
@@ -100,9 +100,9 @@ function NuevaCategoria({ onCreada, onCancelar }: { onCreada: (nombre: string) =
     const alerta = Number(form.alerta)
     const critico = Number(form.critico)
     const errs: Errores = {}
-    if (!form.nombre.trim()) errs.nombre = 'Ingresá el nombre.'
-    if (!Number.isInteger(alerta) || alerta < 1) errs.diasUmbralAlerta = 'Ingresá al menos 1 día.'
-    if (!Number.isInteger(critico) || critico < 1) errs.diasUmbralCritico = 'Ingresá al menos 1 día.'
+    if (!form.nombre.trim()) errs.nombre = 'Ingresar el nombre.'
+    if (!Number.isInteger(alerta) || alerta < 1) errs.diasUmbralAlerta = 'Ingresar al menos 1 día.'
+    if (!Number.isInteger(critico) || critico < 1) errs.diasUmbralCritico = 'Ingresar al menos 1 día.'
     else if (!errs.diasUmbralAlerta && critico > alerta) errs.diasUmbralCritico = 'No puede superar el umbral de alerta.'
     setErrores(errs)
     setFormError(null)
@@ -172,7 +172,7 @@ function Categorias() {
       ) : error ? (
         <ErrorState message={error} onRetry={reload} />
       ) : data && data.length === 0 ? (
-        <EmptyState title="Sin categorías">Creá la primera para empezar a controlar vencimientos.</EmptyState>
+        <EmptyState title="Sin categorías">Crear la primera para empezar a controlar vencimientos.</EmptyState>
       ) : (
         <ul className="grid gap-3 lg:grid-cols-2">
           {data?.map((c) => (
@@ -250,9 +250,9 @@ function AltaUsuario() {
   async function guardar(e: FormEvent) {
     e.preventDefault()
     const errs: Errores = {}
-    if (!form.nombre.trim()) errs.nombre = 'Ingresá el nombre.'
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) errs.email = 'Ingresá un email válido.'
-    if (form.password.length < 6) errs.password = 'Usá al menos 6 caracteres.'
+    if (!form.nombre.trim()) errs.nombre = 'Ingresar el nombre.'
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) errs.email = 'Ingresar un email válido.'
+    if (form.password.length < 6) errs.password = 'Usar al menos 6 caracteres.'
     setErrores(errs)
     setFormError(null)
     setAviso(null)
@@ -323,7 +323,7 @@ export function ConfiguracionPage() {
           <LineaBaseMermaCard comercioId={session.comercioId} />
         </>
       ) : (
-        <InlineAlert kind="info">No pudimos identificar tu comercio para mostrar el piso de margen. Cerrá sesión y volvé a entrar.</InlineAlert>
+        <InlineAlert kind="info">No se pudo identificar el comercio para mostrar el piso de margen. Cerrar sesión y volver a entrar.</InlineAlert>
       )}
       <AltaUsuario />
     </div>

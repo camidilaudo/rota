@@ -134,7 +134,7 @@ function AplicarDescuentoForm({
     e.preventDefault()
     const n = Number(porcentaje.replace(',', '.'))
     if (!Number.isFinite(n) || n < DESCUENTO_MIN || n > DESCUENTO_MAX) {
-      return setError(`Ingresá un descuento entre ${DESCUENTO_MIN}% y ${DESCUENTO_MAX}%.`)
+      return setError(`Ingresar un descuento entre ${DESCUENTO_MIN}% y ${DESCUENTO_MAX}%.`)
     }
     setError(null)
     setFormError(null)
@@ -202,7 +202,7 @@ function DescuentoSugeridoSeccion({ lote, version, isDueno, onCambio }: SeccionP
             <InlineAlert kind="info">
               {isDueno
                 ? `Para vender todo a tiempo hacía falta ${formatPercent(data.porcentajeDescuentoSugerido)}, pero eso perfora el piso de margen. Se recomienda el tope y puede quedar stock sin vender.`
-                : 'Con el límite de descuento del comercio puede quedar stock sin vender. Consultá con el dueño.'}
+                : 'Con el límite de descuento del comercio puede quedar stock sin vender. Consultar con el dueño.'}
             </InlineAlert>
           )}
           <AplicarDescuentoForm
@@ -293,10 +293,10 @@ function BajaSeccion({ lote, onCambio }: SeccionProps) {
   async function dar(e: FormEvent) {
     e.preventDefault()
     const n = Number(cantidad)
-    if (!Number.isInteger(n) || n < 1) return setError('Ingresá al menos 1 unidad.')
+    if (!Number.isInteger(n) || n < 1) return setError('Ingresar al menos 1 unidad.')
     if (n > lote.cantidad) return setError(`El lote tiene ${formatUnits(lote.cantidad)}.`)
     setError(null)
-    if (!causa) return setErrorCausa('Elegí la causa de la baja.')
+    if (!causa) return setErrorCausa('Elegir la causa de la baja.')
     setErrorCausa(null)
     setFormError(null)
     setConfirmacion(null)
@@ -326,7 +326,7 @@ function BajaSeccion({ lote, onCambio }: SeccionProps) {
           error={error ?? undefined}
         />
         <SelectField label="Causa" value={causa} onChange={(e) => setCausa(e.target.value as CausaMerma | '')} error={errorCausa ?? undefined}>
-          <option value="">Elegí la causa</option>
+          <option value="">Elegir la causa</option>
           {CAUSAS_BAJA.map(([valor, etiqueta]) => (
             <option key={valor} value={valor}>
               {etiqueta}
@@ -403,7 +403,7 @@ export function LotePage() {
       ) : evaluacion.error ? (
         <ErrorState message={evaluacion.error} onRetry={evaluacion.reload} />
       ) : !lote || !props ? (
-        <EmptyState title="No encontramos este lote">Puede que ya no exista o que el enlace sea incorrecto.</EmptyState>
+        <EmptyState title="No se encontró este lote">Puede que ya no exista o que el enlace sea incorrecto.</EmptyState>
       ) : (
         <>
           <Resumen lote={lote} isDueno={isDueno} />

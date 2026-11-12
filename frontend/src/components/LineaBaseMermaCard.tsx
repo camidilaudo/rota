@@ -17,7 +17,7 @@ function Formulario({ comercio, onGuardado }: { comercio: Comercio; onGuardado: 
   async function guardar(e: FormEvent) {
     e.preventDefault()
     const n = Number(valor.replace(',', '.'))
-    if (valor.trim() === '' || !Number.isFinite(n) || n < 0) return setError('Ingresá un monto mayor o igual a 0.')
+    if (valor.trim() === '' || !Number.isFinite(n) || n < 0) return setError('Ingresar un monto mayor o igual a 0.')
     setError(null)
     setFormError(null)
     setAviso(null)

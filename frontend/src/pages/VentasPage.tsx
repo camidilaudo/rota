@@ -25,8 +25,8 @@ export function VentasPage() {
     e.preventDefault()
     const nuevos: Record<string, string> = {}
     const n = Number(cantidad)
-    if (!productoId) nuevos.producto = 'Elegí un producto.'
-    if (!Number.isInteger(n) || n < 1) nuevos.cantidad = 'Ingresá al menos 1 unidad.'
+    if (!productoId) nuevos.producto = 'Elegir un producto.'
+    if (!Number.isInteger(n) || n < 1) nuevos.cantidad = 'Ingresar al menos 1 unidad.'
     setErrores(nuevos)
     setFormError(null)
     if (Object.keys(nuevos).length > 0) return
@@ -52,7 +52,7 @@ export function VentasPage() {
 
   return (
     <section className="space-y-6">
-      <PageHeader title="Ventas" description="Registrá lo que se vendió. Se descuenta primero del lote que vence antes." />
+      <PageHeader title="Ventas" description="Registrar lo que se vendió. Se descuenta primero del lote que vence antes." />
 
       {productos.error ? (
         <ErrorState message={productos.error} onRetry={productos.reload} />
@@ -66,7 +66,7 @@ export function VentasPage() {
             onChange={(e) => setProductoId(e.target.value)}
             error={errores.producto || undefined}
           >
-            <option value="">{productos.data ? 'Elegí un producto' : 'Cargando productos'}</option>
+            <option value="">{productos.data ? 'Elegir un producto' : 'Cargando productos'}</option>
             {productos.data?.map((p) => (
               <option key={p.id} value={p.id}>
                 {p.nombre}
@@ -96,7 +96,7 @@ export function VentasPage() {
             <InlineAlert kind="info">
               {agotados.length === 1 ? `Se agotó el lote ${agotados[0].loteId}.` : `Se agotaron los lotes ${agotados.map((l) => l.loteId).join(', ')}.`} Si hay stock en el depósito,{' '}
               <Link to="/reponer" className="underline">
-                reponé la góndola
+                reponer la góndola
               </Link>
               .
             </InlineAlert>

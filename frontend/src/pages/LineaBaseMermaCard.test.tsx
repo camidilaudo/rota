@@ -37,6 +37,6 @@ describe('Línea base de merma (HU-26)', () => {
     const campo = await screen.findByLabelText('Merma mensual antes de Rotá ($)')
     await user.click(within(campo.closest('form')!).getByRole('button', { name: 'Guardar' }))
 
-    expect(screen.getByText('Ingresá un monto mayor o igual a 0.')).toBeInTheDocument()
+    expect(screen.getByText('Ingresar un monto mayor o igual a 0.')).toBeInTheDocument()
   })
 })

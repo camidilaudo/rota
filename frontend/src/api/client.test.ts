@@ -55,7 +55,7 @@ describe('apiRequest', () => {
     const err = (await apiRequest('/api/usuarios', { method: 'POST', body: {} }).catch((e: unknown) => e)) as ApiError
 
     expect(err.status).toBe(403)
-    expect(err.message).toBe('No tenés permiso para esta acción.')
+    expect(err.message).toBe('Sin permiso para esta acción.')
     expect(handler).not.toHaveBeenCalled()
   })
 

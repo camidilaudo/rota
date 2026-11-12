@@ -74,7 +74,7 @@ describe('Panel de merma (HU-25 y HU-26)', () => {
     renderApp('/merma', 'ROLE_DUENO')
 
     expect(await screen.findByText(/Todavía no se cargó la línea base/)).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Cargala en Configuración' })).toHaveAttribute('href', '/configuracion')
+    expect(screen.getByRole('link', { name: 'Cargarla en Configuración' })).toHaveAttribute('href', '/configuracion')
   })
 
   it('filtra por causa y pide el resumen filtrado al backend', async () => {

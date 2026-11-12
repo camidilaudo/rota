@@ -40,8 +40,8 @@ export function setUnauthorizedHandler(handler: (() => void) | null): void {
   unauthorizedHandler = handler
 }
 
-const NETWORK_MESSAGE = 'No pudimos conectarnos con el servidor. Revisá tu conexión e intentá de nuevo.'
-export const FORBIDDEN_MESSAGE = 'No tenés permiso para esta acción.'
+const NETWORK_MESSAGE = 'No se pudo conectar con el servidor. Revisar la conexión e intentar de nuevo.'
+export const FORBIDDEN_MESSAGE = 'Sin permiso para esta acción.'
 
 function buildUrl(path: string, query?: Record<string, QueryValue>): string {
   if (!query) return path
@@ -101,7 +101,7 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
   if (backendUnreachable) throw new ApiError(NETWORK_MESSAGE, response.status, {}, true)
 
   throw new ApiError(
-    errorBody.message ?? 'Algo salió mal. Intentá de nuevo.',
+    errorBody.message ?? 'Algo salió mal. Intentar de nuevo.',
     response.status,
     errorBody.validationErrors ?? {},
   )

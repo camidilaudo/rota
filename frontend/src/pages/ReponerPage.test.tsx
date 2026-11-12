@@ -57,7 +57,7 @@ describe('Reponer', () => {
     expect(screen.getByText(/los 2 de góndola/)).toBeInTheDocument()
     await user.click(botones[0])
 
-    const form = (await screen.findByText('Bajá este lote primero')).closest('form')!
+    const form = (await screen.findByText('Bajar este lote primero')).closest('form')!
     expect(within(form).getByText('Vence el 19/10/2026')).toBeInTheDocument()
     const input = within(form).getByLabelText('Unidades a trasladar')
     expect(input).toHaveValue('15')

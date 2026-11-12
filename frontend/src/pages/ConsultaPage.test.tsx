@@ -39,7 +39,7 @@ describe('Consulta rápida', () => {
     const user = userEvent.setup()
     renderApp('/consulta', 'ROLE_REPOSITOR')
 
-    expect(screen.getByText('Buscá un producto')).toBeInTheDocument()
+    expect(screen.getByText('Buscar producto')).toBeInTheDocument()
     await user.type(screen.getByLabelText('Nombre o código de barras'), 'leche')
 
     expect(await screen.findByText('Leche Entera 1L')).toBeInTheDocument()

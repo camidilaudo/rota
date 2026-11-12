@@ -19,7 +19,7 @@ function Formulario({ comercio, onGuardado }: { comercio: Comercio; onGuardado: 
   async function guardar(e: FormEvent) {
     e.preventDefault()
     const n = Number(valor.replace(',', '.'))
-    if (!Number.isFinite(n) || n < 0 || n > MARGEN_MAX) return setError(`Ingresá un margen entre 0% y ${MARGEN_MAX}%.`)
+    if (!Number.isFinite(n) || n < 0 || n > MARGEN_MAX) return setError(`Ingresar un margen entre 0% y ${MARGEN_MAX}%.`)
     setError(null)
     setFormError(null)
     setAviso(null)

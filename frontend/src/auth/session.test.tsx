@@ -37,7 +37,7 @@ describe('sesión', () => {
     await user.click(screen.getByRole('button', { name: 'Ingresar' }))
 
     expect(await screen.findByText('Email o contraseña incorrectos.')).toBeInTheDocument()
-    expect(screen.queryByText('Tu sesión se cerró. Ingresá de nuevo para seguir.')).not.toBeInTheDocument()
+    expect(screen.queryByText('La sesión se cerró. Es necesario ingresar de nuevo.')).not.toBeInTheDocument()
     expect(readSession()).toBeNull()
   })
 
@@ -50,7 +50,7 @@ describe('sesión', () => {
     await user.type(screen.getByLabelText('Contraseña'), 'mal')
     await user.click(screen.getByRole('button', { name: 'Ingresar' }))
 
-    expect(await screen.findByText('No pudimos iniciar sesión. Revisá el email y la contraseña.')).toBeInTheDocument()
+    expect(await screen.findByText('No se pudo iniciar sesión. Revisar el email y la contraseña.')).toBeInTheDocument()
     expect(readSession()).toBeNull()
   })
 
@@ -62,8 +62,8 @@ describe('sesión', () => {
 
     await user.click(screen.getByRole('button', { name: 'Ingresar' }))
 
-    expect(screen.getByText('Ingresá tu email.')).toBeInTheDocument()
-    expect(screen.getByText('Ingresá tu contraseña.')).toBeInTheDocument()
+    expect(screen.getByText('Ingresar el email.')).toBeInTheDocument()
+    expect(screen.getByText('Ingresar la contraseña.')).toBeInTheDocument()
     expect(fetchMock).not.toHaveBeenCalled()
   })
 
@@ -85,7 +85,7 @@ describe('sesión', () => {
     await expect(apiRequest('/api/productos')).rejects.toMatchObject({ status: 401 })
 
     await waitFor(() => expect(screen.getByRole('button', { name: 'Ingresar' })).toBeInTheDocument())
-    expect(screen.getByText('Tu sesión se cerró. Ingresá de nuevo para seguir.')).toBeInTheDocument()
+    expect(screen.getByText('La sesión se cerró. Es necesario ingresar de nuevo.')).toBeInTheDocument()
     expect(readToken()).toBeNull()
   })
 })
