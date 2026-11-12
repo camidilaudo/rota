@@ -1,7 +1,7 @@
 import { act, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { jsonResponse, mockApi, renderApp } from '../test/renderApp'
+import { callsSinCampana, jsonResponse, mockApi, renderApp } from '../test/renderApp'
 import { leerMediciones } from '../scan/medicionEscaneo'
 import type { Producto } from '../types/domain'
 
@@ -68,7 +68,7 @@ describe('Recepción con escaneo (HU-27)', () => {
     expect(screen.getByLabelText('Vence el')).toBeInTheDocument()
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     expect(zx.stop).toHaveBeenCalled()
-    expect(fetchMock).toHaveBeenCalledTimes(1)
+    expect(callsSinCampana(fetchMock)).toHaveLength(1)
   })
 
   it('ignora lecturas repetidas del mismo escaneo', async () => {
@@ -84,7 +84,7 @@ describe('Recepción con escaneo (HU-27)', () => {
     })
 
     await screen.findByText('Leche Entera 1L')
-    expect(fetchMock).toHaveBeenCalledTimes(1)
+    expect(callsSinCampana(fetchMock)).toHaveLength(1)
   })
 
   it('si el código leído no existe, sigue el flujo de carga manual', async () => {

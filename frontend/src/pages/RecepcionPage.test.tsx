@@ -1,7 +1,7 @@
 import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { jsonResponse, mockApi, renderApp } from '../test/renderApp'
+import { callsSinCampana, jsonResponse, mockApi, renderApp } from '../test/renderApp'
 import type { Producto } from '../types/domain'
 
 const leche: Producto = {
@@ -56,7 +56,7 @@ describe('Recepción de lote', () => {
 
     expect(screen.getByText('Elegir la fecha de vencimiento.')).toBeInTheDocument()
     expect(screen.getByText('Ingresar una cantidad de al menos 1.')).toBeInTheDocument()
-    expect(fetchMock).toHaveBeenCalledTimes(1)
+    expect(callsSinCampana(fetchMock)).toHaveLength(1)
   })
 
   it('si el código no existe, el repositor no puede crear el producto', async () => {

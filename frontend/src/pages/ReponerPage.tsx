@@ -9,23 +9,8 @@ import { EmptyState, ErrorState, InlineAlert, LoadingList } from '../components/
 import { TextField } from '../components/TextField'
 import { describeDaysLeft, formatDate, formatNumber, formatUnits } from '../format'
 import { errorMessage, useApi } from '../hooks/useApi'
-import type { AlertaRotacion, Lote } from '../types/domain'
-
-interface AlertaAgrupada {
-  alerta: AlertaRotacion
-  lotesGondola: number
-}
-
-/** El backend emite una alerta por cada lote en góndola; acá se agrupan por lote de depósito. */
-function agruparAlertas(alertas: AlertaRotacion[]): AlertaAgrupada[] {
-  const porLote = new Map<number, AlertaAgrupada>()
-  for (const a of alertas) {
-    const actual = porLote.get(a.loteDepositoId)
-    if (actual) actual.lotesGondola += 1
-    else porLote.set(a.loteDepositoId, { alerta: a, lotesGondola: 1 })
-  }
-  return [...porLote.values()]
-}
+import { agruparAlertas } from '../rotacion'
+import type { Lote } from '../types/domain'
 
 function Alertas({ onElegir, version }: { onElegir: (productoId: number) => void; version: number }) {
   const { data, error, loading, reload } = useApi((signal) => getAlertasRotacion(signal), [version])

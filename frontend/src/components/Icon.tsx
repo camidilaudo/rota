@@ -1,8 +1,14 @@
 import type { ReactElement, SVGProps } from 'react'
 
-export type IconName = 'route' | 'package' | 'swap' | 'search' | 'settings' | 'logout' | 'eye' | 'eye-off' | 'alert' | 'lock' | 'cart' | 'chart' | 'camera' | 'close'
+export type IconName = 'route' | 'package' | 'swap' | 'search' | 'settings' | 'logout' | 'eye' | 'eye-off' | 'alert' | 'lock' | 'cart' | 'chart' | 'camera' | 'close' | 'bell'
 
 const PATHS: Record<IconName, ReactElement> = {
+  bell: (
+    <>
+      <path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15L6 16Z" />
+      <path d="M10 20a2 2 0 0 0 4 0" />
+    </>
+  ),
   route: (
     <>
       <rect x="5" y="4" width="14" height="17" rx="2" />
