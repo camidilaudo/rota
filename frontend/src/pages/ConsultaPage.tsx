@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { Suspense, lazy, useEffect, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { buscarProductos } from '../api/endpoints'
 import { Button } from '../components/Button'
@@ -9,6 +9,9 @@ import { EmptyState, ErrorState, LoadingList } from '../components/States'
 import { describeDaysLeft, formatDate, formatNumber, formatUnits } from '../format'
 import { errorMessage } from '../hooks/useApi'
 import type { ProductoConLotes } from '../types/domain'
+
+// La librería de lectura (ZXing) pesa: se descarga recién cuando se abre la cámara
+const BarcodeScanner = lazy(() => import('../components/BarcodeScanner').then((m) => ({ default: m.BarcodeScanner })))
 
 const PAGE_SIZE = 10
 const DEBOUNCE_MS = 300
@@ -64,6 +67,7 @@ export function ConsultaPage() {
   const [hayMas, setHayMas] = useState(false)
   const [total, setTotal] = useState(0)
   const [intento, setIntento] = useState(0)
+  const [escaneando, setEscaneando] = useState(false)
   const [terminada, setTerminada] = useState<{ clave: string; error: string | null } | null>(null)
 
   const clave = `${query}|${pagina}|${intento}`
@@ -100,11 +104,22 @@ export function ConsultaPage() {
     setIntento((i) => i + 1)
   }
 
+  function alDetectar(leido: string) {
+    setEscaneando(false)
+    setTexto(leido)
+    setQuery(leido)
+    setPagina(0)
+  }
+
   return (
     <section className="max-w-3xl">
-      <PageHeader title="Consulta" description="Buscá un producto por nombre o código y mirá sus lotes activos." />
+      <PageHeader title="Consulta" description="Buscar un producto por nombre o código y ver sus lotes activos." />
 
       <form role="search" onSubmit={buscarYa} className="mb-5">
+        <Button variant="secondary" fullWidth onClick={() => setEscaneando(true)} className="mb-4">
+          <Icon name="camera" className="h-5 w-5" />
+          Escanear con la cámara
+        </Button>
         <label htmlFor="consulta-texto" className="mb-1.5 block text-sm font-semibold">
           Nombre o código de barras
         </label>
@@ -125,13 +140,13 @@ export function ConsultaPage() {
       </form>
 
       {!query ? (
-        <EmptyState title="Buscá un producto">Escribí parte del nombre o el código de barras.</EmptyState>
+        <EmptyState title="Buscar producto">Escribir parte del nombre o el código de barras.</EmptyState>
       ) : error ? (
         <ErrorState message={error} onRetry={() => setIntento((i) => i + 1)} />
       ) : cargando && pagina === 0 ? (
         <LoadingList rows={2} label="Buscando" />
       ) : resultados.length === 0 ? (
-        <EmptyState title="Sin resultados">No encontramos productos para "{query}".</EmptyState>
+        <EmptyState title="Sin resultados">No se encontraron productos para "{query}".</EmptyState>
       ) : (
         <div className="space-y-4">
           <p aria-live="polite" className="text-sm font-semibold text-muted-foreground">
@@ -148,6 +163,11 @@ export function ConsultaPage() {
             </Button>
           )}
         </div>
+      )}
+      {escaneando && (
+        <Suspense fallback={<div role="status" aria-label="Abriendo la cámara" className="fixed inset-0 z-50 bg-black" />}>
+          <BarcodeScanner onDetected={alDetectar} onClose={() => setEscaneando(false)} />
+        </Suspense>
       )}
     </section>
   )

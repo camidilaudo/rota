@@ -10,7 +10,7 @@ const productos = [
 afterEach(() => vi.unstubAllGlobals())
 
 describe('Ventas (HU-20)', () => {
-  it('registra una venta y muestra de qué lotes salió', async () => {
+  it('registra una venta y muestra los lotes de origen', async () => {
     const fetchMock = mockApi({
       'GET /api/productos': () => jsonResponse(productos),
       'POST /api/operaciones/ventas': () =>
@@ -43,7 +43,7 @@ describe('Ventas (HU-20)', () => {
     expect(screen.getByText(/Lote 4: 4 unidades/)).toBeInTheDocument()
     expect(screen.getByText(/Quedan 13 unidades/)).toBeInTheDocument()
     expect(screen.getByText(/Se agotó el lote 4/)).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'reponé la góndola' })).toHaveAttribute('href', '/reponer')
+    expect(screen.getByRole('link', { name: 'reponer la góndola' })).toHaveAttribute('href', '/reponer')
     const post = fetchMock.mock.calls.find(([url, init]) => url.includes('/api/operaciones/ventas') && init?.method === 'POST')!
     expect(JSON.parse(post[1]!.body as string)).toEqual({ productoId: 2, cantidad: 6 })
   })
@@ -56,7 +56,7 @@ describe('Ventas (HU-20)', () => {
     await screen.findByRole('option', { name: 'Yogur Frutilla 500g' })
     await user.click(screen.getByRole('button', { name: 'Registrar venta' }))
 
-    expect(screen.getByText('Elegí un producto.')).toBeInTheDocument()
+    expect(screen.getByText('Elegir un producto.')).toBeInTheDocument()
     expect(fetchMock.mock.calls.some(([, init]) => init?.method === 'POST')).toBe(false)
   })
 })

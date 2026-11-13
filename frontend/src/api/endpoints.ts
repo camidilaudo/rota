@@ -21,6 +21,7 @@ import type {
   RutaDiaria,
   Ubicacion,
   Usuario,
+  VelocidadVentaLote,
   VentaRegistrada,
 } from '../types/domain'
 import { apiRequest } from './client'
@@ -92,6 +93,9 @@ export const getDescuentoSugerido = (loteId: number, signal?: AbortSignal) =>
 
 export const compararEscenarios = (loteId: number, signal?: AbortSignal) =>
   apiRequest<ComparacionEscenarios>(`/api/operaciones/lotes/${loteId}/comparar-escenarios`, { signal }) // HU-18
+
+export const getVelocidadVentaLote = (loteId: number, signal?: AbortSignal) =>
+  apiRequest<VelocidadVentaLote>(`/api/operaciones/lotes/${loteId}/velocidad-venta`, { signal })
 
 export const getHistorialLote = (loteId: number, signal?: AbortSignal) =>
   apiRequest<HistorialAccion[]>(`/api/operaciones/lotes/${loteId}/historial`, { signal }) // HU-22

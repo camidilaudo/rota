@@ -1,7 +1,11 @@
-import { NavLink, Outlet } from 'react-router-dom'
+import { NavLink, Outlet, useLocation } from 'react-router-dom'
+import { getAlertasRotacion } from '../api/endpoints'
 import { useAuth } from '../auth/AuthContext'
+import { AlertasCampana } from '../components/AlertasCampana'
 import { BrandMark } from '../components/Brand'
 import { Icon } from '../components/Icon'
+import { useApi } from '../hooks/useApi'
+import { agruparAlertas } from '../rotacion'
 import { ROL_LABEL, navItemsFor, type NavItem } from '../navigation'
 
 const SHORT_LABEL: Record<string, string> = {
@@ -58,7 +62,11 @@ function TabLink({ item }: { item: NavItem }) {
 
 export function AppLayout() {
   const { session, logout } = useAuth()
+  const { pathname } = useLocation()
+  // Se vuelve a consultar al navegar: después de reponer, la campana refleja el cambio.
+  const { data } = useApi((signal) => getAlertasRotacion(signal), [pathname])
   if (!session) return null
+  const alertas = agruparAlertas(data ?? [])
 
   const items = navItemsFor(session.rol)
   const comercio = session.comercioNombre ?? 'Tu comercio'
@@ -76,12 +84,13 @@ export function AppLayout() {
       <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col border-r border-border bg-card lg:flex">
         <div className="flex items-center gap-3 px-5 py-5">
           <BrandMark />
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <p className="font-heading text-lg font-bold leading-tight">Rotá</p>
             <p className="truncate text-sm text-muted-foreground" title={comercio}>
               {comercio}
             </p>
           </div>
+          <AlertasCampana alertas={alertas} align="left" />
         </div>
         <nav aria-label="Principal" className="flex-1 space-y-1 overflow-y-auto px-3">
           {items.map((item) => (
@@ -117,6 +126,7 @@ export function AppLayout() {
                 {ROL_LABEL[session.rol]} · {session.email}
               </p>
             </div>
+            <AlertasCampana alertas={alertas} />
             <button
               type="button"
               onClick={logout}

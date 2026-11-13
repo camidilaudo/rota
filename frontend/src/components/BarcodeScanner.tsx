@@ -17,22 +17,22 @@ interface BarcodeScannerProps {
 function mensajeDeError(err: unknown): string {
   const name = err instanceof Error || err instanceof DOMException ? err.name : ''
   if (name === 'NotAllowedError' || name === 'SecurityError') {
-    return 'No hay permiso para usar la cámara. Habilitalo en la configuración del navegador o tipeá el código.'
+    return 'No hay permiso para usar la cámara. Habilitarlo en la configuración del navegador o tipear el código.'
   }
   if (name === 'NotFoundError' || name === 'OverconstrainedError' || name === 'DevicesNotFoundError') {
-    return 'No encontramos una cámara en este dispositivo. Tipeá el código.'
+    return 'No se encontró una cámara en este dispositivo. Tipear el código.'
   }
   if (name === 'NotReadableError' || name === 'TrackStartError') {
-    return 'La cámara está siendo usada por otra aplicación. Cerrala y probá de nuevo, o tipeá el código.'
+    return 'La cámara está siendo usada por otra aplicación. Cerrarla y probar de nuevo, o tipear el código.'
   }
-  return 'No pudimos abrir la cámara. Tipeá el código.'
+  return 'No se pudo abrir la cámara. Tipear el código.'
 }
 
 function errorDeSoporte(): string | null {
   if (window.isSecureContext === false) {
-    return 'La cámara solo funciona con conexión segura (HTTPS). Abrí Rotá con https:// o tipeá el código.'
+    return 'La cámara solo funciona con conexión segura (HTTPS). Abrir Rotá con https:// o tipear el código.'
   }
-  if (!navigator.mediaDevices?.getUserMedia) return 'Este navegador no permite usar la cámara. Tipeá el código.'
+  if (!navigator.mediaDevices?.getUserMedia) return 'Este navegador no permite usar la cámara. Tipear el código.'
   return null
 }
 
@@ -102,7 +102,7 @@ export function BarcodeScanner({ onDetected, onClose }: BarcodeScannerProps) {
   return (
     <div role="dialog" aria-modal="true" aria-label="Escanear código de barras" className="fixed inset-0 z-50 flex flex-col bg-black text-white">
       <div className="flex items-center justify-between gap-3 px-4 pt-[calc(0.75rem+env(safe-area-inset-top))] pb-3">
-        <p className="font-heading text-lg font-semibold">Escaneá el código de barras</p>
+        <p className="font-heading text-lg font-semibold">Escanear el código de barras</p>
         <button
           type="button"
           onClick={onClose}
@@ -135,8 +135,8 @@ export function BarcodeScanner({ onDetected, onClose }: BarcodeScannerProps) {
             {!listo
               ? 'Abriendo la cámara'
               : mostrarAyuda
-                ? 'No se lee: acercá el código, buscá buena luz o cerrá y tipealo.'
-                : 'Encuadrá el código dentro del recuadro.'}
+                ? 'No se lee: acercar el código, buscar buena luz o cerrar y tipearlo.'
+                : 'Encuadrar el código dentro del recuadro.'}
           </p>
         )}
       </div>

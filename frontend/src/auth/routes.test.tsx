@@ -15,7 +15,7 @@ describe('rutas protegidas', () => {
 
   it('el repositor no puede entrar a Configuración escribiendo la URL', () => {
     renderApp('/configuracion', 'ROLE_REPOSITOR')
-    expect(screen.getByRole('heading', { name: 'No tenés acceso' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Sin acceso' })).toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: 'Configuración' })).not.toBeInTheDocument()
   })
 
@@ -26,7 +26,7 @@ describe('rutas protegidas', () => {
 
   it('una URL desconocida muestra la pantalla de no encontrado', () => {
     renderApp('/no-existe', 'ROLE_REPOSITOR')
-    expect(screen.getByRole('heading', { name: 'No encontramos esta pantalla' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'No se encontró esta pantalla' })).toBeInTheDocument()
   })
 })
 

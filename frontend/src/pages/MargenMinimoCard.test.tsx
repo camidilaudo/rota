@@ -39,6 +39,6 @@ describe('Piso de margen (HU-19)', () => {
     await user.type(campo, '99')
     await user.click(within(campo.closest('form')!).getByRole('button', { name: 'Guardar' }))
 
-    expect(screen.getByText('Ingresá un margen entre 0% y 95%.')).toBeInTheDocument()
+    expect(screen.getByText('Ingresar un margen entre 0% y 95%.')).toBeInTheDocument()
   })
 })

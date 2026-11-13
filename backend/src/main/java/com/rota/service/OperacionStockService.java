@@ -9,6 +9,7 @@ import com.rota.dto.response.DescuentoSugeridoResponseDTO;
 import com.rota.dto.response.HistorialAccionResponseDTO;
 import com.rota.dto.response.LoteRevisadoResponseDTO;
 import com.rota.dto.response.MermaResponseDTO;
+import com.rota.dto.response.VelocidadVentaLoteResponseDTO;
 import com.rota.dto.response.VentaResponseDTO;
 
 import java.util.List;
@@ -26,6 +27,9 @@ public interface OperacionStockService {
 
     // HU-18: comparación de margen proyectado entre aplicar el descuento sugerido o no hacer nada
     ComparacionEscenariosResponseDTO compararEscenarios(Long loteId);
+
+    // Gráfico del lote: ventas diarias del producto contra la velocidad necesaria para agotarlo antes de vencer
+    VelocidadVentaLoteResponseDTO obtenerVelocidadVentaLote(Long loteId);
 
     // HU-22: historial de acciones tomadas sobre un lote
     List<HistorialAccionResponseDTO> obtenerHistorialDeLote(Long loteId);

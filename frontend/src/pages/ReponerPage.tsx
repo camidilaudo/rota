@@ -9,23 +9,8 @@ import { EmptyState, ErrorState, InlineAlert, LoadingList } from '../components/
 import { TextField } from '../components/TextField'
 import { describeDaysLeft, formatDate, formatNumber, formatUnits } from '../format'
 import { errorMessage, useApi } from '../hooks/useApi'
-import type { AlertaRotacion, Lote } from '../types/domain'
-
-interface AlertaAgrupada {
-  alerta: AlertaRotacion
-  lotesGondola: number
-}
-
-/** El backend emite una alerta por cada lote en góndola; acá se agrupan por lote de depósito. */
-function agruparAlertas(alertas: AlertaRotacion[]): AlertaAgrupada[] {
-  const porLote = new Map<number, AlertaAgrupada>()
-  for (const a of alertas) {
-    const actual = porLote.get(a.loteDepositoId)
-    if (actual) actual.lotesGondola += 1
-    else porLote.set(a.loteDepositoId, { alerta: a, lotesGondola: 1 })
-  }
-  return [...porLote.values()]
-}
+import { agruparAlertas } from '../rotacion'
+import type { Lote } from '../types/domain'
 
 function Alertas({ onElegir, version }: { onElegir: (productoId: number) => void; version: number }) {
   const { data, error, loading, reload } = useApi((signal) => getAlertasRotacion(signal), [version])
@@ -70,7 +55,7 @@ function Traslado({ lote, onTrasladado }: { lote: Lote; onTrasladado: (cantidad:
   async function trasladar(e: FormEvent) {
     e.preventDefault()
     const n = Number(cantidad)
-    if (!Number.isInteger(n) || n < 1) return setError('Ingresá al menos 1 unidad.')
+    if (!Number.isInteger(n) || n < 1) return setError('Ingresar al menos 1 unidad.')
     if (n > lote.cantidad) return setError(`El lote tiene ${formatUnits(lote.cantidad)}.`)
     setError(null)
     setFormError(null)
@@ -87,7 +72,7 @@ function Traslado({ lote, onTrasladado }: { lote: Lote; onTrasladado: (cantidad:
 
   return (
     <form noValidate onSubmit={trasladar} className="rounded-2xl border-2 border-primary bg-card p-4">
-      <p className="text-sm font-bold uppercase tracking-wide text-primary-strong">Bajá este lote primero</p>
+      <p className="text-sm font-bold uppercase tracking-wide text-primary-strong">Bajar este lote primero</p>
       <p className="mt-1 font-heading text-xl font-bold">Vence el {formatDate(lote.fechaVencimiento)}</p>
       <p className="text-muted-foreground">
         {describeDaysLeft(lote.diasHastaVencimiento)} · {formatUnits(lote.cantidad)} en depósito
@@ -197,7 +182,7 @@ export function ReponerPage() {
             disabled={!productos.data}
             onChange={(e) => elegir(e.target.value ? Number(e.target.value) : null)}
           >
-            <option value="">{productos.data ? 'Elegí un producto' : 'Cargando productos'}</option>
+            <option value="">{productos.data ? 'Elegir un producto' : 'Cargando productos'}</option>
             {productos.data?.map((p) => (
               <option key={p.id} value={p.id}>
                 {p.nombre}

@@ -11,6 +11,7 @@ import com.rota.dto.response.HistorialAccionResponseDTO;
 import com.rota.dto.response.LoteAfectadoVentaDTO;
 import com.rota.dto.response.LoteRevisadoResponseDTO;
 import com.rota.dto.response.MermaResponseDTO;
+import com.rota.dto.response.VelocidadVentaLoteResponseDTO;
 import com.rota.dto.response.VentaResponseDTO;
 import com.rota.entity.Lote;
 import com.rota.entity.Merma;
@@ -43,6 +44,8 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 @Service
 @RequiredArgsConstructor
@@ -51,6 +54,9 @@ public class OperacionStockServiceImpl implements OperacionStockService {
 
     // HU-19: piso de margen por defecto cuando el comercio todavía no configuró uno propio
     private static final BigDecimal MARGEN_MINIMO_POR_DEFECTO = new BigDecimal("15.00");
+
+    // Días que muestra el gráfico de velocidad de venta (la misma ventana que usa VelocidadVentaServiceImpl)
+    private static final int DIAS_GRAFICO_VELOCIDAD = 14;
 
     // Rango de descuento válido para el sistema (coincide con AplicarDescuentoRequestDTO)
     private static final BigDecimal DESCUENTO_MAXIMO_SISTEMA = new BigDecimal("90");
@@ -314,6 +320,48 @@ public class OperacionStockServiceImpl implements OperacionStockService {
                 .porcentajeDescuentoRecomendado(porcentajeRecomendado)
                 .descuentoInsuficientePorMargen(insuficiente)
                 .mensaje(mensaje)
+                .build();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public VelocidadVentaLoteResponseDTO obtenerVelocidadVentaLote(Long loteId) {
+        Lote lote = loteRepository.findById(loteId)
+                .orElseThrow(() -> new ResourceNotFoundException("Lote no encontrado con ID: " + loteId));
+        Producto producto = lote.getProducto();
+
+        // Un día por cada punto del gráfico, incluido hoy; los días sin ventas quedan en 0
+        LocalDate hoy = LocalDate.now();
+        LocalDate desde = hoy.minusDays(DIAS_GRAFICO_VELOCIDAD - 1);
+        Map<LocalDate, Integer> ventasPorDia = new TreeMap<>();
+        for (int i = 0; i < DIAS_GRAFICO_VELOCIDAD; i++) {
+            ventasPorDia.put(desde.plusDays(i), 0);
+        }
+        List<MovimientoStock> ventas = movimientoStockRepository
+                .findByTipoAndLote_Producto_IdAndFechaHoraGreaterThanEqual(TipoMovimiento.VENTA, producto.getId(), desde.atStartOfDay());
+        for (MovimientoStock venta : ventas) {
+            ventasPorDia.merge(venta.getFechaHora().toLocalDate(), venta.getCantidad(), Integer::sum);
+        }
+
+        int diasRestantes = (int) ChronoUnit.DAYS.between(hoy, lote.getFechaVencimiento());
+        BigDecimal velocidadNecesaria = null;
+        if (diasRestantes > 0 && lote.getCantidad() > 0) {
+            velocidadNecesaria = BigDecimal.valueOf(lote.getCantidad())
+                    .divide(BigDecimal.valueOf(diasRestantes), 4, RoundingMode.HALF_UP);
+        }
+
+        List<VelocidadVentaLoteResponseDTO.VentaDiaria> puntos = new ArrayList<>();
+        for (Map.Entry<LocalDate, Integer> dia : ventasPorDia.entrySet()) {
+            puntos.add(new VelocidadVentaLoteResponseDTO.VentaDiaria(dia.getKey(), dia.getValue()));
+        }
+
+        return VelocidadVentaLoteResponseDTO.builder()
+                .loteId(lote.getId())
+                .cantidad(lote.getCantidad())
+                .diasHastaVencimiento(diasRestantes)
+                .velocidadVentaDiariaActual(velocidadVentaService.calcularRotacionDiaria(producto.getId()))
+                .velocidadVentaDiariaNecesaria(velocidadNecesaria)
+                .ventasPorDia(puntos)
                 .build();
     }
 

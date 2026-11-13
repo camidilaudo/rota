@@ -5,7 +5,7 @@ import { PageHeader } from '../components/PageHeader'
 import { SelectField } from '../components/SelectField'
 import { EmptyState, ErrorState, InlineAlert, LoadingList } from '../components/States'
 import { TextField } from '../components/TextField'
-import { CAUSA_MERMA_LABEL, formatMoney, formatPercent, formatUnits, todayIso } from '../format'
+import { CAUSA_MERMA_LABEL, formatMoney, formatPercent, formatUnits, todayIso, unAnioAntes } from '../format'
 import { useApi } from '../hooks/useApi'
 import type { CausaMerma, ComparacionLineaBase, MermaGrupo } from '../types/domain'
 
@@ -58,7 +58,7 @@ function ComparacionCard({ c }: { c: ComparacionLineaBase }) {
       <InlineAlert kind="info">
         {c.mensaje}{' '}
         <Link to="/configuracion" className="underline">
-          Cargala en Configuración
+          Cargarla en Configuración
         </Link>
         .
       </InlineAlert>
@@ -117,13 +117,23 @@ export function MermasPage() {
   const comparacion = useApi((signal) => getComparacionLineaBase({ desde, hasta }, signal), [desde, hasta])
   const datos = resumen.data
 
+  // El período se limita a un año: el input solo restringe el selector, así que también se corrige lo tipeado a mano
+  function cambiarDesde(valor: string) {
+    const minimo = unAnioAntes(hasta)
+    setDesde(valor && valor < minimo ? minimo : valor)
+  }
+  function cambiarHasta(valor: string) {
+    setHasta(valor)
+    if (valor && desde < unAnioAntes(valor)) setDesde(unAnioAntes(valor))
+  }
+
   return (
     <section className="space-y-6">
       <PageHeader title="Merma" description="Cuánto se perdió, a valor costo, y en qué categorías y por qué causas." />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <TextField label="Desde" type="date" value={desde} max={hasta} onChange={(e) => setDesde(e.target.value)} />
-        <TextField label="Hasta" type="date" value={hasta} min={desde} max={hoy} onChange={(e) => setHasta(e.target.value)} />
+        <TextField label="Desde" type="date" value={desde} min={unAnioAntes(hasta)} max={hasta} onChange={(e) => cambiarDesde(e.target.value)} />
+        <TextField label="Hasta" type="date" value={hasta} min={desde} max={hoy} onChange={(e) => cambiarHasta(e.target.value)} />
         <SelectField label="Categoría" value={categoriaId} onChange={(e) => setCategoriaId(e.target.value)}>
           <option value="">Todas</option>
           {categorias.data?.map((c) => (
