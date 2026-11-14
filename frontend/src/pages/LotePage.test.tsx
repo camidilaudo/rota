@@ -151,6 +151,34 @@ describe('Detalle de lote', () => {
     expect(screen.queryByText('Sin descuento')).not.toBeInTheDocument()
   })
 
+  it('si ni el tope del piso de margen compensa, recomienda no rebajar en las dos secciones (HU-18)', async () => {
+    mockApi({
+      ...rutasBase(),
+      'GET /api/operaciones/lotes/5/descuento-sugerido': () => jsonResponse({ ...sugerido, convieneAplicar: false }),
+      'GET /api/operaciones/lotes/5/comparar-escenarios': () => jsonResponse({ ...escenarios, recomendacion: 'SIN_DESCUENTO' }),
+    })
+    renderApp('/lotes/5', 'ROLE_DUENO')
+
+    expect(await screen.findByText('No rebajar')).toBeInTheDocument()
+    expect(screen.queryByText('Descuento recomendado')).not.toBeInTheDocument()
+    expect(screen.getByText(/Ni el descuento máximo que permite el piso de margen \(25%\) compensa/)).toBeInTheDocument()
+    expect(screen.getByLabelText('Descuento a aplicar (%)')).toHaveValue('')
+    expect(await screen.findByText(/Conviene no rebajar: con el descuento, el margen total queda por debajo/)).toBeInTheDocument()
+  })
+
+  it('al repositor le dice que rebajar no compensa, sin mostrar márgenes', async () => {
+    mockApi({
+      ...rutasBase(),
+      'GET /api/riesgo/evaluacion-general': () => jsonResponse([{ ...lote, valorEnRiesgo: undefined }]),
+      'GET /api/operaciones/lotes/5/descuento-sugerido': () => jsonResponse({ ...sugerido, convieneAplicar: false }),
+    })
+    renderApp('/lotes/5', 'ROLE_REPOSITOR')
+
+    expect(await screen.findByText('No rebajar')).toBeInTheDocument()
+    expect(screen.getByText('Rebajar no compensa en este lote. Consultar con el dueño.')).toBeInTheDocument()
+    expect(screen.queryByText(/piso de margen/)).not.toBeInTheDocument()
+  })
+
   it('el repositor no ve márgenes ni escenarios', async () => {
     const fetchMock = mockApi({ ...rutasBase(), 'GET /api/riesgo/evaluacion-general': () => jsonResponse([{ ...lote, valorEnRiesgo: undefined }]) })
     renderApp('/lotes/5', 'ROLE_REPOSITOR')

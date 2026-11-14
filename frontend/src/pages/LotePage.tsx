@@ -21,6 +21,7 @@ import { VelocidadVentaGrafico } from '../components/VelocidadVentaGrafico'
 import { CAUSA_MERMA_LABEL, describeDaysLeft, formatDate, formatDateTime, formatMoney, formatNumber, formatPercent, formatUnits } from '../format'
 import { errorMessage, useApi } from '../hooks/useApi'
 import type { CausaMerma, DescuentoSugerido, EscenarioProyectado, LoteRiesgo, TipoAccion } from '../types/domain'
+import { avisarCambioDeStock } from '../stockEvents'
 
 const DESCUENTO_MIN = 5
 const DESCUENTO_MAX = 90
@@ -133,7 +134,9 @@ function AplicarDescuentoForm({
   onAplicado: () => void
 }) {
   const recomendado = sugerido.porcentajeDescuentoRecomendado
-  const [porcentaje, setPorcentaje] = useState(recomendado >= DESCUENTO_MIN ? String(Math.round(recomendado * 100) / 100) : '')
+  // Si conviene no rebajar, el campo queda vacío: aplicar un descuento igual tiene que ser una decisión explícita
+  const precargar = sugerido.convieneAplicar !== false && recomendado >= DESCUENTO_MIN
+  const [porcentaje, setPorcentaje] = useState(precargar ? String(Math.round(recomendado * 100) / 100) : '')
   const [motivo, setMotivo] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [formError, setFormError] = useState<string | null>(null)
@@ -197,6 +200,11 @@ function VelocidadSeccion({ lote, version }: SeccionProps) {
   )
 }
 
+/** HU-18: el descuento recomendado no deja más margen que no rebajar. Sin el dato (versión anterior del backend), se asume que conviene. */
+function noConviene(s: DescuentoSugerido): boolean {
+  return s.convieneAplicar === false && s.porcentajeDescuentoRecomendado > 0
+}
+
 /** HU-17 y HU-19: descuento que liquida el lote a tiempo, topeado por el piso de margen del comercio. */
 function DescuentoSugeridoSeccion({ lote, version, isDueno, onCambio }: SeccionProps) {
   const [confirmacion, setConfirmacion] = useState<string | null>(null)
@@ -210,10 +218,17 @@ function DescuentoSugeridoSeccion({ lote, version, isDueno, onCambio }: SeccionP
         <ErrorState message={error} onRetry={reload} />
       ) : data ? (
         <div className="space-y-4 rounded-2xl border border-border bg-card p-4">
-          <div>
-            <p className="text-sm font-semibold text-muted-foreground">Descuento recomendado</p>
-            <p className="font-heading text-3xl font-bold">{formatPercent(data.porcentajeDescuentoRecomendado)}</p>
-          </div>
+          {noConviene(data) ? (
+            <div>
+              <p className="text-sm font-semibold text-muted-foreground">Recomendación</p>
+              <p className="font-heading text-3xl font-bold">No rebajar</p>
+            </div>
+          ) : (
+            <div>
+              <p className="text-sm font-semibold text-muted-foreground">Descuento recomendado</p>
+              <p className="font-heading text-3xl font-bold">{formatPercent(data.porcentajeDescuentoRecomendado)}</p>
+            </div>
+          )}
           <p className="text-sm text-muted-foreground">
             Para vender {formatUnits(data.cantidad)} antes de vencer hace falta vender {formatNumber(data.velocidadVentaDiariaNecesaria)} por día. Hoy se venden{' '}
             {formatNumber(data.velocidadVentaDiariaActual)}.
@@ -224,7 +239,13 @@ function DescuentoSugeridoSeccion({ lote, version, isDueno, onCambio }: SeccionP
               {formatPercent(data.porcentajeDescuentoMaximoPorMargen)}.
             </p>
           )}
-          {data.descuentoInsuficientePorMargen && (
+          {noConviene(data) ? (
+            <InlineAlert kind="info">
+              {isDueno
+                ? `Ni el descuento máximo que permite el piso de margen (${formatPercent(data.porcentajeDescuentoRecomendado)}) compensa: rebajar deja menos margen total que no hacerlo. Abajo están los números de los dos escenarios.`
+                : 'Rebajar no compensa en este lote. Consultar con el dueño.'}
+            </InlineAlert>
+          ) : data.descuentoInsuficientePorMargen && (
             <InlineAlert kind="info">
               {isDueno
                 ? `Para vender todo a tiempo hacía falta ${formatPercent(data.porcentajeDescuentoSugerido)}, pero eso perfora el piso de margen. Se recomienda el tope y puede quedar stock sin vender.`
@@ -351,7 +372,9 @@ function EscenariosSeccion({ lote, version, onCambio }: SeccionProps) {
       ) : data ? (
         <div className="space-y-3">
           <InlineAlert kind="info">
-            {data.recomendacion === 'CON_DESCUENTO' ? 'Conviene aplicar el descuento: deja más margen.' : 'Conviene no aplicar descuento: deja más margen.'}
+            {data.recomendacion === 'CON_DESCUENTO'
+              ? 'Conviene aplicar el descuento: deja más margen.'
+              : 'Conviene no rebajar: con el descuento, el margen total queda por debajo del de no rebajar.'}
           </InlineAlert>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <Escenario titulo="Sin descuento" e={data.escenarioSinDescuento} destacado={data.recomendacion === 'SIN_DESCUENTO'} />
@@ -476,6 +499,7 @@ export function LotePage() {
 
   function alCambiar() {
     setVersion((v) => v + 1)
+    avisarCambioDeStock()
   }
 
   const props = lote && { lote, version, isDueno, onCambio: alCambiar }
