@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { ApiError } from '../api/client'
 import { getProductos, registrarVenta } from '../api/endpoints'
+import { avisarCambioDeStock } from '../stockEvents'
 import { Button } from '../components/Button'
 import { PageHeader } from '../components/PageHeader'
 import { SelectField } from '../components/SelectField'
@@ -35,6 +36,7 @@ export function VentasPage() {
     setResultado(null)
     try {
       const venta = await registrarVenta({ productoId: Number(productoId), cantidad: n })
+      avisarCambioDeStock()
       setResultado(venta)
       setCantidad('1')
     } catch (err) {

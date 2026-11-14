@@ -1,6 +1,7 @@
 import { useRef, useState, type FormEvent } from 'react'
 import { ApiError } from '../api/client'
 import { getAlertasRotacion, getLotesFefo, getProductos, trasladarAGondola } from '../api/endpoints'
+import { avisarCambioDeStock } from '../stockEvents'
 import { Button } from '../components/Button'
 import { PageHeader } from '../components/PageHeader'
 import { UbicacionTag } from '../components/RiskBadge'
@@ -62,6 +63,7 @@ function Traslado({ lote, onTrasladado }: { lote: Lote; onTrasladado: (cantidad:
     setGuardando(true)
     try {
       await trasladarAGondola({ loteOrigenId: lote.id, cantidadATrasladar: n })
+      avisarCambioDeStock()
       onTrasladado(n)
     } catch (err) {
       if (err instanceof ApiError && err.fieldErrors.cantidadATrasladar) setError(err.fieldErrors.cantidadATrasladar)
