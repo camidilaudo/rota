@@ -65,6 +65,42 @@ function loteAuxiliar(productoId, cantidad) {
   return api('POST', '/api/lotes', { productoId, cantidad, fechaVencimiento: fechaEnDias(0), ubicacion: 'DEPOSITO' })
 }
 
+const pesos = (n) => Number(n).toLocaleString('es-AR', { maximumFractionDigits: 2 })
+
+/**
+ * HU-26 en la demo: la línea base es mensual y el panel de merma la prorratea a los días del mes que ya pasaron.
+ * Como las bajas de la demo quedan registradas el día que se corre este comando, el monto que muestra un ahorro
+ * razonable depende del día del mes. Se calcula para hoy, contando la baja que se hace en vivo en el paso 6
+ * (los lotes de los datos que vencen hoy: la manteca), con un objetivo de alrededor de 40% menos.
+ */
+async function sugerirLineaBase(datos) {
+  const comparacion = await api('GET', '/api/operaciones/mermas/comparacion-linea-base')
+  const dias = Math.round((Date.parse(comparacion.hasta) - Date.parse(comparacion.desde)) / 86400000) + 1
+  const bajaEnVivo = datos.productos
+    .flatMap((p) => (p.lotes ?? []).filter((l) => l.venceEnDias === 0).map((l) => l.cantidad * (p.costo ?? 0)))
+    .reduce((a, b) => a + b, 0)
+  const mermaDelMes = Number(comparacion.mermaPeriodo) + bajaEnVivo
+  if (!(mermaDelMes > 0)) return
+
+  const objetivo = 0.4
+  const base = Math.ceil(((mermaDelMes / (1 - objetivo)) * 30) / dias / 1000) * 1000
+  const basePeriodo = Math.round(((base * dias) / 30) * 100) / 100
+  const ahorro = ((basePeriodo - mermaDelMes) / basePeriodo) * 100
+
+  console.log(`Línea base para cargar hoy en Configuración (paso 9): $ ${pesos(base)}`)
+  console.log(
+    `  El panel la prorratea a ${dias} de 30 días ($ ${pesos(basePeriodo)}). Con la baja del paso 6, la merma del mes queda en ` +
+      `$ ${pesos(mermaDelMes)}: un ${ahorro.toFixed(0)}% menos que antes de Rotá.`,
+  )
+  if (dias < 7) {
+    console.log(
+      '  Al principio del mes el monto queda alto porque todas las bajas de la demo son de hoy. Alternativa: cargar $ 60.000 y, ' +
+        'en Merma, poner "Desde" 29 días antes de hoy (30 días con hoy): la línea base se compara completa.',
+    )
+  }
+  console.log('')
+}
+
 async function main() {
   const datos = JSON.parse(await readFile(archivo, 'utf8'))
   console.log(`Backend: ${BACKEND}\nDatos:   ${archivo}\n`)
@@ -144,6 +180,7 @@ async function main() {
   lista('Cargado:', resumen.creados)
   lista('Salteado:', resumen.salteados)
   lista('Con error:', resumen.errores)
+  if (!resumen.errores.length && datos.lineaBaseMermaMensual == null) await sugerirLineaBase(datos)
   if (resumen.errores.length) {
     console.log('Hubo errores: restablecé el entorno (DEMO.md, sección 7) y volvé a correr el comando.')
     process.exitCode = 1

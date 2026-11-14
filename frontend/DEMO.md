@@ -88,6 +88,8 @@ Bajas del mes que carga el comando:
 
 Las ventas y las bajas se registran sobre lotes auxiliares que vencen hoy y quedan en 0: no descuentan de los lotes de la tabla y no aparecen en la ruta. La línea base de merma **no** se carga acá: se carga en vivo en el paso 9.
 
+Al terminar, el comando imprime **la línea base para cargar ese día** en el paso 9. La línea base es mensual y el panel la prorratea a los días del mes que pasaron; como las bajas de la demo quedan registradas el día que se corre el comando, el monto que muestra el ahorro depende del día. El comando lo calcula para que, con la baja de la manteca del paso 6, la comparación dé alrededor de un 40% menos. Anotarlo.
+
 ### 3.3 Códigos para escanear
 
 En `frontend/docs/demo/codigos/` están los EAN-13 de los 5 productos, más uno que no existe (`7799999000063`) para mostrar qué pasa con un producto no cargado. Abrilos en la PC con brillo alto o imprimilos.
@@ -114,8 +116,8 @@ Sin celular: tipear el código y **Buscar producto**.
 
 ### Paso 2. Alerta FEFO y traslado (encargado; HU-10, HU-11 y HU-12)
 
-1. **Se espera:** al cargar el yogur en góndola, el aviso de que hay un lote más viejo del mismo producto en el depósito (15 u., vence en 5 días).
-2. Trasladar ese lote del depósito a la góndola.
+1. **Se espera:** al registrar el yogur en góndola, debajo de "Lote registrado" aparece el aviso de que en el depósito hay un lote del mismo producto que vence antes (15 u., vence en 5 días), con el enlace **Ir a Reponer**. La campana del encabezado se actualiza en el momento con la misma alerta.
+2. **Ir a Reponer** y trasladar ese lote del depósito a la góndola.
 
 ### Paso 3. Ruta del día (encargado; HU-13, HU-14 y HU-15)
 
@@ -123,7 +125,7 @@ Sin celular: tipear el código y **Buscar producto**.
 2. **Se espera:** 5 lotes en rojo, con el semáforo con texto, la velocidad de venta y **ningún monto en pesos**:
    - Leche Entera, 25 u.: vence mañana.
    - Yogur Frutilla, 15 u.: cubre 15 días de venta y le quedan 5 (riesgo por velocidad).
-   - Pan Lactal, 10 u.: cubre 3,3 días y le quedan 2.
+   - Pan Lactal, 10 u.: a este ritmo tarda 4 días en venderse (cubre 3,3; la app redondea para arriba) y le quedan 2.
    - Queso Cremoso, 8 u.: cubre 56 días y le quedan 40 (riesgo con fecha lejana, el caso principal de HU-15).
    - Manteca, 4 u.: vence hoy.
 3. Cerrar sesión.
@@ -131,13 +133,13 @@ Sin celular: tipear el código y **Buscar producto**.
 ### Paso 4. Descuentos sugeridos (dueño; HU-17 y HU-22)
 
 1. Entrar con `dueno@comercio.com` / `123456`. **Se espera:** el **Valor en riesgo** total y por lote, y las pestañas **Merma** y **Config.**
-2. En la leche, el yogur y el pan: **Ver y actuar**, revisar el descuento sugerido y **Aplicar descuento al lote**.
-3. **Se espera:** cada descuento queda en el historial del lote con tipo, usuario, fecha y motivo.
+2. En la leche, el yogur y el pan: **Ver y actuar** y revisar el descuento sugerido. **Se espera:** el descuento que haría falta, el tope del piso de margen y la recomendación. Con la elasticidad 1:1 del MVP, en estos lotes rebajar deja menos margen total que no hacerlo, así que la recomendación es **No rebajar** y la comparación de escenarios dice lo mismo. Es el mensaje de la demo: Rotá no recomienda regalar margen.
+3. Para mostrar el registro, aplicar igual un descuento en uno de ellos (por ejemplo, 10% en el pan) con un motivo. **Se espera:** el descuento queda en el historial del lote con tipo, usuario, fecha y motivo.
 
 ### Paso 5. Piso de margen y escenarios (dueño; HU-19 y HU-18)
 
 1. En el queso cremoso, **Ver y actuar**.
-2. **Se espera:** el descuento sugerido queda topeado por el piso de margen del comercio (20%) y la comparación de escenarios muestra, con y sin descuento, unidades vendidas, descartadas y margen resultante.
+2. **Se espera:** para venderlo a tiempo haría falta 39,96%, pero el piso de margen del comercio (20%) lo topea en 19,23%. La comparación de escenarios muestra, con y sin descuento, unidades vendidas, descartadas y margen resultante: con 19,23% se vende 1 unidad más pero el margen total baja, y por eso la recomendación arriba es **No rebajar**.
 
 ### Paso 6. Baja con causa (dueño; HU-23)
 
@@ -166,8 +168,8 @@ Sin celular: tipear el código y **Buscar producto**.
 
 ### Paso 9. Línea base (dueño; HU-26)
 
-1. **Config.**: cargar la línea base de merma mensual en $ 60.000.
-2. Volver a **Merma**. **Se espera:** la línea base prorrateada a los días del mes que pasaron (el 28/10: 28 de 30 días, $ 56.000) contra la merma real ($ 35.200): ahorro de $ 20.800, un 37% menos. Si la demo es otro día, el prorrateo cambia.
+1. **Config.**: cargar la línea base de merma mensual con el monto que imprimió `npm run demo:datos` (sección 3.2).
+2. Volver a **Merma**. **Se espera:** la línea base prorrateada a los días del mes que pasaron contra la merma real ($ 35.200): alrededor de un 40% menos. Ejemplo: el 28/10, con $ 60.000, la base del período era $ 56.000 (28 de 30 días) y el ahorro, $ 20.800 (37%). Si no se anotó el monto, se calcula así: merma del mes ÷ 0,6 × 30 ÷ días del mes que pasaron, redondeado a miles.
 
 ### Cierre. El encargado no ve costos (20 s)
 
