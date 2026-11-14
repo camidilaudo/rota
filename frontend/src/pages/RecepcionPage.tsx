@@ -1,6 +1,7 @@
 import { Suspense, lazy, useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
+import { Link } from 'react-router-dom'
 import { ApiError } from '../api/client'
-import { crearProducto, getCategorias, getProductoPorCodigo, registrarLote } from '../api/endpoints'
+import { crearProducto, getAlertasRotacion, getCategorias, getProductoPorCodigo, registrarLote } from '../api/endpoints'
 import { useAuth } from '../auth/AuthContext'
 import { Button } from '../components/Button'
 import { Icon } from '../components/Icon'
@@ -10,8 +11,9 @@ import { SelectField } from '../components/SelectField'
 import { InlineAlert } from '../components/States'
 import { TextField } from '../components/TextField'
 import { UBICACION_LABEL, formatDate, formatUnits, todayIso } from '../format'
-import { errorMessage } from '../hooks/useApi'
+import { errorMessage, useApi } from '../hooks/useApi'
 import { guardarMedicion } from '../scan/medicionEscaneo'
+import { avisarCambioDeStock } from '../stockEvents'
 import type { Categoria, Lote, Producto, Ubicacion } from '../types/domain'
 
 // La librería de lectura (ZXing) pesa: se descarga recién cuando se abre la cámara
@@ -262,6 +264,27 @@ function PasoProductoNuevo({
   )
 }
 
+/**
+ * HU-11 en la recepción: si después de cargar el lote hay un lote del mismo producto en el depósito que vence
+ * antes que el de la góndola, se avisa en el momento, sin esperar a abrir Reponer.
+ */
+function AlertaRotacionRecepcion({ lote }: { lote: Lote }) {
+  const { data } = useApi((signal) => getAlertasRotacion(signal), [lote.id])
+  const alerta = data?.find((a) => a.productoId === lote.productoId)
+  if (!alerta) return null
+  return (
+    <InlineAlert kind="info">
+      <span className="block">
+        En el depósito hay un lote de {alerta.productoNombre} que vence el {formatDate(alerta.fechaVencimientoDeposito)}, antes que el de la
+        góndola ({formatDate(alerta.fechaVencimientoGondola)}). Reponer primero ese lote.
+      </span>
+      <Link to="/reponer" className="mt-1 inline-block underline underline-offset-2">
+        Ir a Reponer
+      </Link>
+    </InlineAlert>
+  )
+}
+
 function PasoLote({ producto, onRegistrado, onCambiar }: { producto: Producto; onRegistrado: (l: Lote) => void; onCambiar: () => void }) {
   const [fecha, setFecha] = useState('')
   const [cantidad, setCantidad] = useState('')
@@ -285,7 +308,9 @@ function PasoLote({ producto, onRegistrado, onCambiar }: { producto: Producto; o
     if (Object.keys(errs).length) return
     setGuardando(true)
     try {
-      onRegistrado(await registrarLote({ productoId: producto.id, cantidad: n, fechaVencimiento: fecha, ubicacion }))
+      const registrado = await registrarLote({ productoId: producto.id, cantidad: n, fechaVencimiento: fecha, ubicacion })
+      avisarCambioDeStock()
+      onRegistrado(registrado)
     } catch (err) {
       if (err instanceof ApiError) setErrores(err.fieldErrors)
       setFormError(errorMessage(err))
@@ -394,6 +419,7 @@ export function RecepcionPage() {
               {formatUnits(lote.cantidad)} · vence el {formatDate(lote.fechaVencimiento)} · {UBICACION_LABEL[lote.ubicacion]}
             </p>
           </div>
+          <AlertaRotacionRecepcion lote={lote} />
           <Button fullWidth onClick={reiniciar}>
             Recibir otro lote
           </Button>

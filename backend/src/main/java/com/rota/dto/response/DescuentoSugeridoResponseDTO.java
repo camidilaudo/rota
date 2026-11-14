@@ -29,5 +29,9 @@ public class DescuentoSugeridoResponseDTO {
     // HU-19: true si el descuento necesario para vender a tiempo perfora el piso de margen
     private Boolean descuentoInsuficientePorMargen;
 
+    // HU-18: true si aplicar el descuento recomendado deja al menos el mismo margen total que no rebajar
+    // (misma proyección que la comparación de escenarios). Si es false, conviene no rebajar.
+    private Boolean convieneAplicar;
+
     private String mensaje;
 }

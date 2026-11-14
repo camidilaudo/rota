@@ -45,6 +45,46 @@ describe('Recepción de lote', () => {
     expect(JSON.parse(String(post[1]!.body))).toEqual({ productoId: 1, cantidad: 24, fechaVencimiento: '2099-12-31', ubicacion: 'GONDOLA' })
   })
 
+  it('al registrar, avisa si en el depósito hay un lote del mismo producto que vence antes y actualiza la campana (HU-11)', async () => {
+    let registrado = false
+    const alerta = {
+      productoId: 1,
+      productoNombre: leche.nombre,
+      productoCodigoBarra: leche.codigoBarra,
+      loteGondolaId: 9,
+      fechaVencimientoGondola: '2099-12-31',
+      diasHastaVencimientoGondola: 30,
+      loteDepositoId: 2,
+      fechaVencimientoDeposito: '2099-11-19',
+      diasHastaVencimientoDeposito: 5,
+      diasDiferencia: 25,
+      recomendacionAccion: '',
+    }
+    mockApi({
+      'GET /api/rotacion/alertas-rotacion': () => jsonResponse(registrado ? [alerta] : []),
+      'GET /api/productos/codigo/7790001000011': () => jsonResponse(leche),
+      'POST /api/lotes': (_u, init) => {
+        registrado = true
+        const body = JSON.parse(String(init.body))
+        return jsonResponse({ id: 9, productoId: 1, productoCodigoBarra: leche.codigoBarra, productoNombre: leche.nombre, fechaRecepcion: null, diasHastaVencimiento: 30, ...body }, 201)
+      },
+    })
+    const user = userEvent.setup()
+    renderApp('/recepcion', 'ROLE_REPOSITOR')
+    expect((await screen.findAllByRole('button', { name: 'Alertas: sin alertas' })).length).toBeGreaterThan(0)
+
+    await user.type(screen.getByLabelText('Código de barras'), '7790001000011{Enter}')
+    await screen.findByText('Leche Entera 1L')
+    await user.type(screen.getByLabelText('Vence el'), '2099-12-31')
+    await user.type(screen.getByLabelText('Cantidad'), '12')
+    await user.click(screen.getByRole('button', { name: 'Góndola' }))
+    await user.click(screen.getByRole('button', { name: 'Registrar lote' }))
+
+    expect(await screen.findByText(/En el depósito hay un lote de Leche Entera 1L que vence el 19\/11\/2099/)).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Ir a Reponer' })).toHaveAttribute('href', '/reponer')
+    expect((await screen.findAllByRole('button', { name: 'Alertas: 1 alerta' })).length).toBeGreaterThan(0)
+  })
+
   it('valida fecha y cantidad antes de enviar', async () => {
     const fetchMock = mockApi({ 'GET /api/productos/codigo/7790001000011': () => jsonResponse(leche) })
     const user = userEvent.setup()

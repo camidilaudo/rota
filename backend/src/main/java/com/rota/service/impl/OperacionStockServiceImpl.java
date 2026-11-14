@@ -282,6 +282,7 @@ public class OperacionStockServiceImpl implements OperacionStockService {
                     .porcentajeDescuentoMaximoPorMargen(descuentoMaximoPorMargen)
                     .porcentajeDescuentoRecomendado(BigDecimal.ZERO)
                     .descuentoInsuficientePorMargen(false)
+                    .convieneAplicar(false)
                     .mensaje("El lote ya está vencido: no corresponde aplicar un descuento, se recomienda registrar la baja.")
                     .build();
         }
@@ -294,9 +295,19 @@ public class OperacionStockServiceImpl implements OperacionStockService {
         boolean insuficiente = porcentajeSugerido.compareTo(descuentoMaximoPorMargen) > 0;
         BigDecimal porcentajeRecomendado = insuficiente ? descuentoMaximoPorMargen : porcentajeSugerido;
 
+        // HU-18: la recomendación tiene que coincidir con la comparación de escenarios. Si ni el descuento
+        // recomendado deja más margen que no rebajar, se informa que conviene no rebajar.
+        boolean conviene = convieneAplicarDescuento(producto, lote.getCantidad(), diasRestantes,
+                velocidadActual, velocidadNecesaria, porcentajeRecomendado);
+
         String mensaje;
         if (porcentajeSugerido.compareTo(BigDecimal.ZERO) == 0) {
             mensaje = "No es necesario aplicar un descuento: al ritmo de venta actual, el lote se agota antes de vencer.";
+        } else if (!conviene) {
+            mensaje = String.format(
+                    "Conviene no rebajar: ni el descuento máximo que permite el piso de margen (%s%%) recupera lo que se resigna de margen. " +
+                    "Evaluar otra salida para el lote o la cantidad del próximo pedido.",
+                    porcentajeRecomendado);
         } else if (insuficiente) {
             mensaje = String.format(
                     "Para liquidar el lote a tiempo haría falta un %s%% de descuento, pero el piso de margen (%s%%) solo permite hasta un %s%%. " +
@@ -319,6 +330,7 @@ public class OperacionStockServiceImpl implements OperacionStockService {
                 .porcentajeDescuentoMaximoPorMargen(descuentoMaximoPorMargen)
                 .porcentajeDescuentoRecomendado(porcentajeRecomendado)
                 .descuentoInsuficientePorMargen(insuficiente)
+                .convieneAplicar(conviene)
                 .mensaje(mensaje)
                 .build();
     }
@@ -394,8 +406,7 @@ public class OperacionStockServiceImpl implements OperacionStockService {
         EscenarioProyectadoDTO conDescuento = proyectarEscenario(
                 producto, cantidad, diasRestantes, velocidadLograda, pctDescuento, precioFinal);
 
-        boolean convieneDescuento = pctDescuento.compareTo(BigDecimal.ZERO) > 0
-                && conDescuento.getMargenTotalProyectado().compareTo(sinDescuento.getMargenTotalProyectado()) >= 0;
+        boolean convieneDescuento = Boolean.TRUE.equals(sugerido.getConvieneAplicar());
         String recomendacion = convieneDescuento ? "CON_DESCUENTO" : "SIN_DESCUENTO";
         String mensaje = convieneDescuento
                 ? String.format("Aplicar el descuento del %s%% proyecta un mejor resultado ($%s) que no hacer nada ($%s).",
@@ -478,6 +489,25 @@ public class OperacionStockServiceImpl implements OperacionStockService {
         if (porcentaje.compareTo(DESCUENTO_MAXIMO_SISTEMA) > 0) return DESCUENTO_MAXIMO_SISTEMA;
         if (porcentaje.compareTo(BigDecimal.ZERO) < 0) return BigDecimal.ZERO;
         return porcentaje;
+    }
+
+    /**
+     * HU-18: compara el margen total proyectado con y sin el descuento, con la misma proyección que
+     * la comparación de escenarios. Conviene si el descuento es mayor que cero y no deja menos margen.
+     */
+    private boolean convieneAplicarDescuento(Producto producto, int cantidad, int diasRestantes,
+                                             BigDecimal velocidadActual, BigDecimal velocidadNecesaria, BigDecimal pctDescuento) {
+        if (pctDescuento.compareTo(BigDecimal.ZERO) <= 0 || diasRestantes <= 0) {
+            return false;
+        }
+        EscenarioProyectadoDTO sin = proyectarEscenario(
+                producto, cantidad, diasRestantes, velocidadActual, BigDecimal.ZERO, producto.getPrecioVenta());
+        BigDecimal precioFinal = producto.getPrecioVenta()
+                .multiply(BigDecimal.ONE.subtract(pctDescuento.divide(BigDecimal.valueOf(100), 4, RoundingMode.HALF_UP)))
+                .setScale(2, RoundingMode.HALF_UP);
+        EscenarioProyectadoDTO con = proyectarEscenario(producto, cantidad, diasRestantes,
+                estimarVelocidadLograda(velocidadActual, velocidadNecesaria, pctDescuento), pctDescuento, precioFinal);
+        return con.getMargenTotalProyectado().compareTo(sin.getMargenTotalProyectado()) >= 0;
     }
 
     private EscenarioProyectadoDTO proyectarEscenario(Producto producto, int cantidad, int diasRestantes,

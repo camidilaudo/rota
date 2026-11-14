@@ -1,5 +1,6 @@
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { getAlertasRotacion } from '../api/endpoints'
+import { useCambiosDeStock } from '../stockEvents'
 import { useAuth } from '../auth/AuthContext'
 import { AlertasCampana } from '../components/AlertasCampana'
 import { BrandMark } from '../components/Brand'
@@ -63,8 +64,10 @@ function TabLink({ item }: { item: NavItem }) {
 export function AppLayout() {
   const { session, logout } = useAuth()
   const { pathname } = useLocation()
-  // Se vuelve a consultar al navegar: después de reponer, la campana refleja el cambio.
-  const { data } = useApi((signal) => getAlertasRotacion(signal), [pathname])
+  // Se vuelve a consultar al navegar y cada vez que cambia el stock (recepción, traslado, venta, baja):
+  // así la campana refleja una alerta nueva sin tener que recargar la página.
+  const cambiosDeStock = useCambiosDeStock()
+  const { data } = useApi((signal) => getAlertasRotacion(signal), [pathname, cambiosDeStock])
   if (!session) return null
   const alertas = agruparAlertas(data ?? [])
 

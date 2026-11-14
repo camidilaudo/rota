@@ -162,6 +162,8 @@ export interface DescuentoSugerido {
   porcentajeDescuentoMaximoPorMargen: number
   porcentajeDescuentoRecomendado: number
   descuentoInsuficientePorMargen: boolean
+  /** HU-18: false si ni el descuento recomendado deja más margen que no rebajar (misma cuenta que los escenarios). */
+  convieneAplicar?: boolean
   mensaje: string
 }
 

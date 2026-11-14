@@ -20,7 +20,7 @@ function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div className="min-w-0 rounded-2xl border border-border bg-card px-4 py-3">
       <p className="text-sm font-semibold text-muted-foreground">{label}</p>
-      <p className="mt-0.5 truncate font-heading text-2xl font-bold">{value}</p>
+      <p className="mt-0.5 font-heading text-2xl font-bold [overflow-wrap:anywhere]">{value}</p>
     </div>
   )
 }
@@ -162,7 +162,7 @@ export function MermasPage() {
             <div className="col-span-2 lg:col-span-1">
               <Stat label="Pérdida a costo" value={formatMoney(datos.perdidaTotal)} />
             </div>
-            <Stat label="Unidades" value={formatUnits(datos.unidadesTotales)} />
+            <Stat label="Unidades" value={String(datos.unidadesTotales)} />
             <Stat label="Bajas" value={String(datos.registros)} />
           </div>
 
